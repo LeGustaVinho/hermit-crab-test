@@ -1,4 +1,5 @@
-﻿using UnityEngine;
+﻿using HermitCrab.Level;
+using UnityEngine;
 
 namespace HermitCrab.Character
 {
@@ -62,13 +63,21 @@ namespace HermitCrab.Character
 
         private void OnCollisionEnter2D(Collision2D collision)
         {
-            // Check if the collided object has a CharacterController.
+            Destroy(gameObject);
+            
+            // First, check if the collided object is a Barrel.
+            Barrel barrel = collision.gameObject.GetComponent<Barrel>();
+            if (barrel != null)
+            {
+                barrel.ReceiveDamage();
+                return;
+            }
+
+            // Otherwise, check if it's a CharacterController.
             CharacterController target = collision.gameObject.GetComponent<CharacterController>();
             if (target != null)
             {
-                // Inflict damage with the updated method signature, including the attacker's position.
                 target.TakeDamage(DamageType.Projectile, damage, attackerPosition);
-                Destroy(gameObject);
             }
         }
     }

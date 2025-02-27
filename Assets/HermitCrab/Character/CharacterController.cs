@@ -1,83 +1,168 @@
 ﻿using System;
+using System.Collections;
+using HermitCrab.Level;
 using UnityEngine;
 
 namespace HermitCrab.Character
 {
+    /// <summary>
+    ///     Controls the character behavior including movement, jumping, attacking, and damage reception.
+    ///     This component interfaces with the CharacterLogic class to process actions and updates the Animator
+    ///     and physics (Rigidbody2D) accordingly.
+    /// </summary>
     public class CharacterController : MonoBehaviour
     {
-        [Header("Configurações do Personagem")]
-        public CharacterData characterData; // Dados e referências, inclusive o prefab do projetil
+        #region Public Fields
 
-        [Header("Spawn e Ground Check")] public Transform projectileSpawnPoint; // Ponto de spawn do projetil
-        public Transform groundCheck; // Ponto para verificação do chão
-        public float groundCheckRadius = 0.1f; // Raio da verificação
-        public LayerMask groundLayer; // Camada atribuída ao chão
+        [Header("Character Settings")]
+        // Character configuration data (includes references such as the projectile prefab).
+        public CharacterData characterData;
 
-        [Header("Configurações de Soco")] public float punchRange = 1f; // Alcance do soco
-        public LayerMask enemyLayer; // Layer dos inimigos que receberão dano
+        [Header("Spawn and Ground Check")]
+        // Transform used as the spawn point for projectiles.
+        public Transform projectileSpawnPoint;
 
+        // Transform used to check if the character is on the ground.
+        public Transform groundCheck;
+
+        // Radius used for ground detection.
+        public float groundCheckRadius = 0.1f;
+
+        // Layer mask specifying which layers count as ground.
+        public LayerMask groundLayer;
+
+        [Header("Punch Settings")]
+        // The range within which a punch can hit enemies.
+        public float punchRange = 1f;
+
+        // Layer mask specifying which layers contain enemies.
+        public LayerMask enemyLayer;
+
+        #endregion
+
+        #region Public Events
+
+        /// <summary>
+        ///     Event raised when the character receives damage.
+        ///     The event passes the position of the attacker.
+        /// </summary>
         public event Action<Vector3> OnDamageReceived;
-        
+
+        #endregion
+
+        #region Private Fields
+
         private CharacterLogic logic;
         private Animator animator;
         private Rigidbody2D rb;
 
-        // Variáveis para controle de input
+        // Variables to control movement input.
         private float horizontalInput;
         private bool isRunning;
 
-        // Variáveis para detectar mudanças no input
+        // Variables to track changes in input.
         private float lastHorizontalInput;
         private bool lastIsRunning;
 
-        // Flags de estado
+        // State flags.
         private bool wasIdle = false;
-        private bool isDead; // indica se o personagem já morreu
+        private bool isDead; // Indicates if the character is dead.
+        private bool isExternallyAffected = false;
 
-        // Variáveis de cooldown para ações
+        // Cooldown timers for actions (in seconds).
         private float lastPunchTime = -Mathf.Infinity;
         private float lastShootTime = -Mathf.Infinity;
-        private const float actionCooldown = 1f; // 1 segundo de cooldown
+        private const float actionCooldown = 1f;
 
+        // Added fields for visual feedback on damage.
+        private SpriteRenderer spriteRenderer;
+        private Color originalColor;
+        private bool isPoisoned = false;
+
+        #endregion
+
+        #region Unity Methods
+
+        /// <summary>
+        ///     Initializes the component by obtaining references and initializing logic.
+        ///     Subscribes to events from the CharacterLogic.
+        /// </summary>
         private void Awake()
         {
             animator = GetComponent<Animator>();
             rb = GetComponent<Rigidbody2D>();
             logic = new CharacterLogic(characterData);
             SubscribeToEvents();
+            // Initialize spriteRenderer and original color.
+            spriteRenderer = GetComponent<SpriteRenderer>();
+            if (spriteRenderer != null)
+            {
+                originalColor = spriteRenderer.color;
+            }
         }
 
+        /// <summary>
+        ///     Subscribes to events from CharacterLogic to update the animator triggers.
+        /// </summary>
         private void SubscribeToEvents()
         {
-            // Outros eventos (pulo, ataque, etc.) permanecem inalterados
+            // Subscribe to jump event.
             logic.OnJump += () =>
             {
-                if (!isDead) animator.SetTrigger("JumpTrigger");
+                if (!isDead)
+                {
+                    animator.SetTrigger("JumpTrigger");
+                }
             };
+            // Subscribe to double jump event.
             logic.OnDoubleJump += () =>
             {
-                if (!isDead) animator.SetTrigger("DoubleJumpTrigger");
+                if (!isDead)
+                {
+                    animator.SetTrigger("DoubleJumpTrigger");
+                }
             };
+            // Subscribe to shoot event.
             logic.OnShoot += () =>
             {
-                if (!isDead) animator.SetTrigger("ShootTrigger");
+                if (!isDead)
+                {
+                    animator.SetTrigger("ShootTrigger");
+                }
             };
+            // Subscribe to jump shoot event.
             logic.OnJumpShoot += () =>
             {
-                if (!isDead) animator.SetTrigger("JumpShootTrigger");
+                if (!isDead)
+                {
+                    animator.SetTrigger("JumpShootTrigger");
+                }
             };
+            // Subscribe to run shoot event.
             logic.OnRunShoot += () =>
             {
-                if (!isDead) animator.SetTrigger("RunShootTrigger");
+                if (!isDead)
+                {
+                    animator.SetTrigger("RunShootTrigger");
+                }
             };
+            // Subscribe to punch event.
             logic.OnPunch += () =>
             {
-                if (!isDead) animator.SetTrigger("PunchTrigger");
+                if (!isDead)
+                {
+                    animator.SetTrigger("PunchTrigger");
+                }
             };
+            // Subscribe to jump punch event.
             logic.OnJumpPunch += () =>
             {
-                if (!isDead) animator.SetTrigger("JumpPunchTrigger");
+                if (!isDead)
+                {
+                    animator.SetTrigger("JumpPunchTrigger");
+                }
             };
+            // Subscribe to death event.
             logic.OnDeath += () =>
             {
                 if (!isDead)
@@ -86,20 +171,34 @@ namespace HermitCrab.Character
                     Die();
                 }
             };
+            // Subscribe to projectile creation event.
             logic.OnProjectileCreated += CreateProjectile;
         }
 
+        /// <summary>
+        ///     Updates the character logic and animation state every frame.
+        /// </summary>
         private void Update()
         {
-            // Se estiver morto, não processa nenhuma lógica
-            if (isDead) return;
+            // If the character is dead, do not process further updates.
+            if (isDead)
+            {
+                return;
+            }
 
+            // Update character logic (e.g., energy recharge).
             logic.Update(Time.deltaTime);
+            // Check if the character is on the ground and handle landing.
             CheckGround();
+            // Update the sprite's facing direction.
             UpdateSpriteDirection();
+            // Update animator states for idle and movement.
             UpdateAnimationState();
         }
 
+        /// <summary>
+        ///     Applies horizontal movement and gravity adjustments in FixedUpdate.
+        /// </summary>
         private void FixedUpdate()
         {
             if (isDead)
@@ -108,29 +207,53 @@ namespace HermitCrab.Character
                 return;
             }
 
-            // Aplica movimento horizontal sem deslizar quando não há input
-            if (Mathf.Abs(horizontalInput) > 0.1f)
+            // Se não estiver sob efeito de força externa, processa o input do jogador
+            if (!isExternallyAffected)
             {
-                float speed = isRunning ? characterData.runSpeed : characterData.walkSpeed;
-                rb.velocity = new Vector2(horizontalInput * speed, rb.velocity.y);
-            }
-            else
-            {
-                rb.velocity = new Vector2(0, rb.velocity.y);
+                // Apply horizontal movement if there is significant input.
+                if (Mathf.Abs(horizontalInput) > 0.1f)
+                {
+                    float speed = isRunning ? characterData.runSpeed : characterData.walkSpeed;
+                    rb.velocity = new Vector2(horizontalInput * speed, rb.velocity.y);
+                }
+                else
+                {
+                    // Stop horizontal movement when no input is present.
+                    rb.velocity = new Vector2(0, rb.velocity.y);
+                }
             }
 
-            // Aumenta a velocidade de queda se estiver caindo
+            // Increase falling speed using a gravity multiplier if the character is falling.
             if (rb.velocity.y < 0)
             {
                 rb.velocity += Vector2.up * Physics2D.gravity.y * (characterData.fallMultiplier - 1) * Time.deltaTime;
             }
         }
 
-        // Atualiza o input de movimento; dispara atualizações somente se houver mudança
+        #endregion
+
+        #region Public Methods
+
+        public void SetExternalForceActive(bool active)
+        {
+            isExternallyAffected = active;
+        }
+        
+        /// <summary>
+        ///     Updates the movement input.
+        ///     Only processes new input if there is a change, then calls the CharacterLogic Move method
+        ///     and updates Animator parameters.
+        /// </summary>
+        /// <param name="direction">Horizontal direction (-1 for left, 1 for right).</param>
+        /// <param name="run">True if the character is running; otherwise, walking.</param>
         public void Move(float direction, bool run)
         {
-            if (isDead) return;
+            if (isDead)
+            {
+                return;
+            }
 
+            // Process input only if it has changed.
             if (Mathf.Approximately(direction, lastHorizontalInput) && run == lastIsRunning)
             {
                 return;
@@ -141,8 +264,10 @@ namespace HermitCrab.Character
 
             horizontalInput = direction;
             isRunning = run;
+            // Pass input to the character logic.
             logic.Move(direction, run);
-            // Atualiza os parâmetros do Animator
+
+            // Update Animator boolean parameters for movement.
             if (Mathf.Abs(direction) > 0.1f)
             {
                 if (run)
@@ -164,9 +289,16 @@ namespace HermitCrab.Character
             }
         }
 
+        /// <summary>
+        ///     Makes the character jump if on the ground or if double jump is allowed.
+        /// </summary>
         public void Jump()
         {
-            if (isDead) return;
+            if (isDead)
+            {
+                return;
+            }
+
             if (IsGrounded() || logic.CanDoubleJump)
             {
                 logic.Jump();
@@ -174,34 +306,78 @@ namespace HermitCrab.Character
             }
         }
 
+        /// <summary>
+        ///     Resets the jump state when the character lands.
+        /// </summary>
         public void Land()
         {
-            if (isDead) return;
+            if (isDead)
+            {
+                return;
+            }
+
             logic.Land();
             rb.velocity = new Vector2(rb.velocity.x, 0f);
+            isExternallyAffected = false;
         }
 
-        public void Shoot() 
+        /// <summary>
+        ///     Initiates a shooting action if the cooldown has elapsed.
+        ///     Passes the current position as the attacker's position.
+        /// </summary>
+        public void Shoot()
         {
-            if (isDead) return;
-            if (Time.time - lastShootTime < actionCooldown)
+            if (isDead)
+            {
                 return;
+            }
+
+            if (Time.time - lastShootTime < actionCooldown)
+            {
+                return;
+            }
+
             lastShootTime = Time.time;
-            // Passa a posição atual do personagem como AttackerPosition
+            // Pass the character's current position as the attacker's position.
             logic.Shoot(transform.position);
         }
 
+        /// <summary>
+        ///     Initiates a punch action if the cooldown has elapsed.
+        ///     Performs an overlap circle check to detect enemy collisions and applies damage.
+        /// </summary>
         public void Punch()
         {
-            if (isDead) return;
-            if (Time.time - lastPunchTime < actionCooldown) return;
+            if (isDead)
+            {
+                return;
+            }
+
+            if (Time.time - lastPunchTime < actionCooldown)
+            {
+                return;
+            }
+
             lastPunchTime = Time.time;
             logic.Punch();
+
+            // Determine the origin of the punch based on character position and facing direction.
             Vector2 punchOrigin = (Vector2)transform.position +
                                   (logic.FacingRight ? Vector2.right : Vector2.left) * (punchRange * 0.5f);
-            Collider2D[] hitColliders = Physics2D.OverlapCircleAll(punchOrigin, punchRange, enemyLayer);
+
+            // Check for colliders within the punch range (without filtering by layer).
+            Collider2D[] hitColliders = Physics2D.OverlapCircleAll(punchOrigin, punchRange);
             foreach (Collider2D collider in hitColliders)
             {
+                // First, check if we hit a Barrel.
+                var barrel = collider.GetComponent<Barrel>();
+                if (barrel != null)
+                {
+                    barrel.ReceiveDamage();
+                    continue; // Skip further processing for this collider.
+                }
+
+                // Next, check if we hit an enemy CharacterController.
                 CharacterController target = collider.GetComponent<CharacterController>();
                 if (target != null && target != this)
                 {
@@ -210,7 +386,10 @@ namespace HermitCrab.Character
             }
         }
 
-        // Cria o projetil a partir do prefab definido no CharacterData
+        /// <summary>
+        ///     Instantiates a projectile based on the provided ProjectileInfo.
+        /// </summary>
+        /// <param name="projInfo">Information needed to create and initialize the projectile.</param>
         private void CreateProjectile(ProjectileInfo projInfo)
         {
             if (characterData.projectilePrefab && projectileSpawnPoint)
@@ -225,13 +404,16 @@ namespace HermitCrab.Character
             }
         }
 
-        // Verifica se o personagem está tocando o chão
+        /// <summary>
+        ///     Checks if the character is grounded using a circular overlap.
+        ///     If grounded and the character is in a jump state, triggers landing.
+        /// </summary>
         private void CheckGround()
         {
             if (rb.velocity.y <= 0)
             {
                 bool isGrounded = Physics2D.OverlapCircle(groundCheck.position, groundCheckRadius, groundLayer);
-                if (isGrounded && logic.IsJumping)
+                if (isGrounded && (logic.IsJumping || isExternallyAffected))
                 {
                     Land();
                     animator.SetTrigger("LandTrigger");
@@ -239,7 +421,9 @@ namespace HermitCrab.Character
             }
         }
 
-        // Atualiza a direção do sprite conforme o movimento
+        /// <summary>
+        ///     Updates the sprite's facing direction based on the character's movement.
+        /// </summary>
         private void UpdateSpriteDirection()
         {
             Vector3 scale = transform.localScale;
@@ -247,10 +431,17 @@ namespace HermitCrab.Character
             transform.localScale = scale;
         }
 
-        // Atualiza os estados do Animator para manter o loop de movimento correto
+        /// <summary>
+        ///     Updates the animator state for idle versus movement.
+        ///     Sets the "isIdle" boolean based on whether there is horizontal input.
+        /// </summary>
         private void UpdateAnimationState()
         {
-            if (isDead) return;
+            if (isDead)
+            {
+                return;
+            }
+
             if (Mathf.Abs(horizontalInput) > 0.1f)
             {
                 animator.SetBool("isIdle", false);
@@ -261,28 +452,50 @@ namespace HermitCrab.Character
             }
         }
 
-        // Verifica se o personagem está no chão
+        /// <summary>
+        ///     Determines if the character is grounded by performing a circular overlap check.
+        /// </summary>
+        /// <returns>True if the character is grounded; otherwise, false.</returns>
         private bool IsGrounded()
         {
             return Physics2D.OverlapCircle(groundCheck.position, groundCheckRadius, groundLayer);
         }
 
-        // Método para receber dano, agora com a posição do atacante.
-        public void TakeDamage(DamageType damageType, int damage, Vector3 attackerPosition) {
-            if (isDead) return;
+        /// <summary>
+        ///     Receives damage with the specified damage type, amount, and the attacker's position.
+        ///     If the character is not dead, it forwards damage processing to the logic and raises the OnDamageReceived event.
+        /// </summary>
+        /// <param name="damageType">Type of damage.</param>
+        /// <param name="damage">Amount of damage.</param>
+        /// <param name="attackerPosition">Position of the attacker.</param>
+        public void TakeDamage(DamageType damageType, int damage, Vector3 attackerPosition)
+        {
+            if (isDead)
+            {
+                return;
+            }
+
             logic.ReceiveDamage(damageType, damage);
 
-            // Dispara o evento para avisar que este personagem foi atingido.
-            if (OnDamageReceived != null) {
-                OnDamageReceived(attackerPosition);
+            // Raise the OnDamageReceived event to notify listeners of the damage and attacker position.
+            OnDamageReceived?.Invoke(attackerPosition);
+
+            // Flash red if the damage is not poison.
+            if (damageType != DamageType.Poison)
+            {
+                StartCoroutine(FlashRed());
             }
         }
 
-
-        // Propriedade para saber se o personagem está vivo
+        /// <summary>
+        ///     Gets a value indicating whether the character is alive.
+        /// </summary>
         public bool IsAlive => !isDead;
 
-        // Quando o personagem morre, desativa física e colisões e impede novas ações
+        /// <summary>
+        ///     Handles character death by disabling physics simulation and colliders.
+        ///     Prevents further actions after death.
+        /// </summary>
         public void Die()
         {
             isDead = true;
@@ -291,11 +504,42 @@ namespace HermitCrab.Character
                 rb.simulated = false;
             }
 
+            // Disable all Collider2D components on this GameObject.
             Collider2D[] colliders = GetComponents<Collider2D>();
             foreach (Collider2D col in colliders)
             {
                 col.enabled = false;
             }
         }
+
+        /// <summary>
+        ///     Sets the poison state on the character.
+        ///     When poisoned, the sprite remains green.
+        /// </summary>
+        /// <param name="state">True to set poisoned, false to remove poison effect.</param>
+        public void SetPoisoned(bool state)
+        {
+            isPoisoned = state;
+            if (spriteRenderer != null)
+            {
+                spriteRenderer.color = isPoisoned ? Color.green : originalColor;
+            }
+        }
+
+        /// <summary>
+        ///     Coroutine to flash the sprite red when taking damage.
+        /// </summary>
+        private IEnumerator FlashRed()
+        {
+            if (spriteRenderer != null)
+            {
+                Color currentColor = spriteRenderer.color;
+                spriteRenderer.color = Color.red;
+                yield return new WaitForSeconds(0.2f);
+                spriteRenderer.color = isPoisoned ? Color.green : originalColor;
+            }
+        }
+
+        #endregion
     }
 }

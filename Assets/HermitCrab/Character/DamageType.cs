@@ -7,6 +7,7 @@
     {
         Projectile,
         Physical,
-        Environmental
+        Environmental, 
+        Poison,
     }
 }
