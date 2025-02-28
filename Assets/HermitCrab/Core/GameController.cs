@@ -3,6 +3,7 @@ using System.Collections;
 using UnityEngine;
 using HermitCrab.Character;
 using HermitCrab.Camera;
+using HermitCrab.Core.HermitCrab.Core;
 using HermitCrab.Level;
 using CharacterController = HermitCrab.Character.CharacterController;
 
@@ -98,6 +99,25 @@ namespace HermitCrab.Core
 
                 // Subscribe to the player's death event.
                 playerController.OnPlayerDeath += HandlePlayerDeath;
+                
+                // Subscribe to the player's item collection event.
+                playerController.OnItemCollected += (itemData) =>
+                {
+                    gameLogic.AddPoints(gameConfig.collectibleItemPoints);
+                };
+
+                // Subscribe to enemy death events.
+                foreach (var enemyAI in enemyControllers)
+                {
+                    CharacterController enemyController = enemyAI.enemyController;
+                    if (enemyController != null)
+                    {
+                        enemyController.OnEnemyDeath += () =>
+                        {
+                            gameLogic.AddPoints(gameConfig.enemyKillPoints);
+                        };
+                    }
+                }
             }
             else
             {

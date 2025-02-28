@@ -12,6 +12,9 @@ namespace HermitCrab.Level
         public float KnockbackForce = 5f;
 
         // Movement configuration fields
+        [Tooltip("Rotation speed of the saw in degrees per second.")]
+        public float rotationSpeed = 360f;
+        
         public enum MovementType { Horizontal, Vertical }
         public MovementType movementType = MovementType.Horizontal;
         public float movementSpeed = 1f; // Speed at which the saw moves (units per second)

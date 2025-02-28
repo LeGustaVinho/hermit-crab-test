@@ -14,5 +14,12 @@ namespace HermitCrab.Core
         [Header("Game Settings")]
         public int initialLives = 3;
         public int levelsToWin = 5;
+        
+        [Header("Points Settings")]
+        [Tooltip("Points awarded when the player collects an item.")]
+        public int collectibleItemPoints = 50;
+
+        [Tooltip("Points awarded when the player kills an enemy.")]
+        public int enemyKillPoints = 100;
     }
 }

@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections;
 using HermitCrab.Level;
+using HermitCrab.Level.HermitCrab.Items;
 using UnityEngine;
 
 namespace HermitCrab.Character
@@ -50,6 +51,16 @@ namespace HermitCrab.Character
         
         // New event to notify when the player dies.
         public event Action OnPlayerDeath;
+        
+        /// <summary>
+        /// Event raised when an enemy dies.
+        /// </summary>
+        public event Action OnEnemyDeath;
+        
+        /// <summary>
+        /// Event raised when an item is collected.
+        /// </summary>
+        public event Action<CollectibleItemData> OnItemCollected;
 
         #endregion
 
@@ -237,6 +248,30 @@ namespace HermitCrab.Character
 
         #region Public Methods
 
+        /// <summary>
+        /// Applies the collectible item's effects to the character.
+        /// </summary>
+        /// <param name="itemData">The collectible item's configuration data.</param>
+        public void CollectItem(CollectibleItemData itemData)
+        {
+            if (itemData == null)
+                return;
+
+            // Restore energy if applicable.
+            if (itemData.energyRestore > 0)
+            {
+                logic.RestoreEnergy(itemData.energyRestore);
+            }
+
+            // Restore health if applicable.
+            if (itemData.healthRestore > 0)
+            {
+                logic.RestoreHealth(itemData.healthRestore);
+            }
+
+            OnItemCollected?.Invoke(itemData);
+        }
+        
         public void SetExternalForceActive(bool active)
         {
             isExternallyAffected = active;
@@ -517,6 +552,12 @@ namespace HermitCrab.Character
             
             // Fire the player death event.
             OnPlayerDeath?.Invoke();
+            
+            // If this is an enemy (i.e. not tagged "Player"), raise the enemy death event.
+            if (!gameObject.CompareTag("Player"))
+            {
+                OnEnemyDeath?.Invoke();
+            }
         }
 
         /// <summary>

@@ -36,6 +36,9 @@ namespace HermitCrab.Level
             // Calculate offset using PingPong to oscillate between -halfDistance and +halfDistance
             float offset = Mathf.PingPong(Time.time * sawData.movementSpeed, sawData.movementDistance) - halfDistance;
             transform.position = startPosition + movementDirection * offset;
+            
+            // Rotate the saw quickly around the Z axis.
+            transform.Rotate(Vector3.forward, sawData.rotationSpeed * Time.deltaTime);
         }
 
         private void OnTriggerExit2D(Collider2D other)

@@ -182,6 +182,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: c31b056bbb414bc3af7d812debdb74d3, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  InitializeOnStart: 0
   target: {fileID: 0}
   virtualCamera: {fileID: 1360293738}
   screenXOffset: 0.4
@@ -215,8 +216,11 @@ MonoBehaviour:
   playerVictoryPrefab: {fileID: 100954589873835104, guid: 037aa10f80b5bda47a416e20888803b7, type: 3}
   levelBackgroundPrefab: {fileID: 5553279545990175337, guid: 5bf6be460d9e8ab469662e5d998e8bba, type: 3}
   levelBackgroundY: 5
+  batteryPrefab: {fileID: 3376102178190664181, guid: 2dd3faecdaa46c24cba8deb6c32d9cc5, type: 3}
+  repairKitPrefab: {fileID: 8122602786356848531, guid: 17fa27c924dd63b49adae4181253caea, type: 3}
+  collectibleChance: 0.1
   gridSize: 2.5
-  startPosition: {x: -2.5, y: -7.5}
+  startPosition: {x: -2.5, y: -2.5}
   minY: -10
   maxY: 20
   maxJumpX: 7.5
@@ -255,63 +259,6 @@ MonoBehaviour:
   inputController: {fileID: 221533230}
   cameraController: {fileID: 221533232}
   levelGenerator: {fileID: 221533233}
---- !u!1001 &449046232
-PrefabInstance:
-  m_ObjectHideFlags: 0
-  serializedVersion: 2
-  m_Modification:
-    serializedVersion: 3
-    m_TransformParent: {fileID: 0}
-    m_Modifications:
-    - target: {fileID: 2559530034075421351, guid: 5bf6be460d9e8ab469662e5d998e8bba, type: 3}
-      propertyPath: m_LocalPosition.x
-      value: -10
-      objectReference: {fileID: 0}
-    - target: {fileID: 2559530034075421351, guid: 5bf6be460d9e8ab469662e5d998e8bba, type: 3}
-      propertyPath: m_LocalPosition.y
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 2559530034075421351, guid: 5bf6be460d9e8ab469662e5d998e8bba, type: 3}
-      propertyPath: m_LocalPosition.z
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 2559530034075421351, guid: 5bf6be460d9e8ab469662e5d998e8bba, type: 3}
-      propertyPath: m_LocalRotation.w
-      value: 1
-      objectReference: {fileID: 0}
-    - target: {fileID: 2559530034075421351, guid: 5bf6be460d9e8ab469662e5d998e8bba, type: 3}
-      propertyPath: m_LocalRotation.x
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 2559530034075421351, guid: 5bf6be460d9e8ab469662e5d998e8bba, type: 3}
-      propertyPath: m_LocalRotation.y
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 2559530034075421351, guid: 5bf6be460d9e8ab469662e5d998e8bba, type: 3}
-      propertyPath: m_LocalRotation.z
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 2559530034075421351, guid: 5bf6be460d9e8ab469662e5d998e8bba, type: 3}
-      propertyPath: m_LocalEulerAnglesHint.x
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 2559530034075421351, guid: 5bf6be460d9e8ab469662e5d998e8bba, type: 3}
-      propertyPath: m_LocalEulerAnglesHint.y
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 2559530034075421351, guid: 5bf6be460d9e8ab469662e5d998e8bba, type: 3}
-      propertyPath: m_LocalEulerAnglesHint.z
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 5553279545990175337, guid: 5bf6be460d9e8ab469662e5d998e8bba, type: 3}
-      propertyPath: m_Name
-      value: BG TIle
-      objectReference: {fileID: 0}
-    m_RemovedComponents: []
-    m_RemovedGameObjects: []
-    m_AddedGameObjects: []
-    m_AddedComponents: []
-  m_SourcePrefab: {fileID: 100100000, guid: 5bf6be460d9e8ab469662e5d998e8bba, type: 3}
 --- !u!1 &519420028
 GameObject:
   m_ObjectHideFlags: 0
@@ -419,7 +366,7 @@ Camera:
   far clip plane: 1000
   field of view: 34
   orthographic: 1
-  orthographic size: 7.79
+  orthographic size: 12
   m_Depth: -1
   m_CullingMask:
     serializedVersion: 2
@@ -605,7 +552,7 @@ MonoBehaviour:
   m_Follow: {fileID: 0}
   m_Lens:
     FieldOfView: 34
-    OrthographicSize: 7.79
+    OrthographicSize: 12
     NearClipPlane: 0.3
     FarClipPlane: 1000
     Dutch: 0
@@ -734,4 +681,3 @@ SceneRoots:
   - {fileID: 619394802}
   - {fileID: 221533231}
   - {fileID: 1360293739}
-  - {fileID: 449046232}

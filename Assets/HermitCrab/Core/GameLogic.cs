@@ -1,84 +1,95 @@
-﻿namespace HermitCrab.Core
+﻿using System;
+
+namespace HermitCrab.Core
 {
-    using System;
-
-    /// <summary>
-    /// Encapsulates pure game logic: tracking lives, levels and game state changes.
-    /// </summary>
-    public class GameLogic
+    namespace HermitCrab.Core
     {
-        public event Action OnLevelStart;
-        public event Action OnLevelEnd;
-        public event Action OnGameOver;
-        public event Action OnWin;
-        public event Action<int> OnLivesChanged; // Sends updated lives count.
-        public event Action<int> OnLevelChanged; // Sends updated level count.
-
-        private int lives;
-        private int currentLevel;
-        private int levelsToWin;
-
-        public GameLogic(int initialLives, int levelsToWin)
-        {
-            lives = initialLives;
-            currentLevel = 1;
-            this.levelsToWin = levelsToWin;
-        }
-
-        public int Lives => lives;
-        public int CurrentLevel => currentLevel;
-
         /// <summary>
-        /// Call to signal that a new level is starting.
+        ///     Encapsulates pure game logic: tracking lives, levels, points and game state changes.
         /// </summary>
-        public void StartLevel()
+        public class GameLogic
         {
-            OnLevelStart?.Invoke();
-        }
+            public event Action OnLevelStart;
+            public event Action OnLevelEnd;
+            public event Action OnGameOver;
+            public event Action OnWin;
+            public event Action<int> OnLivesChanged; // Sends updated lives count.
+            public event Action<int> OnLevelChanged; // Sends updated level count.
+            public event Action<int> OnPointsChanged; // Sends updated points (score).
 
-        /// <summary>
-        /// Call when the level ends (either by death or level completion).
-        /// </summary>
-        public void EndLevel()
-        {
-            OnLevelEnd?.Invoke();
-        }
+            private readonly int levelsToWin;
 
-        /// <summary>
-        /// Should be called when the player dies.
-        /// </summary>
-        public void PlayerDied()
-        {
-            lives--;
-            OnLivesChanged?.Invoke(lives);
-            if (lives > 0)
+            public GameLogic(int initialLives, int levelsToWin)
             {
-                currentLevel++;
-                OnLevelChanged?.Invoke(currentLevel);
-                StartLevel();
+                Lives = initialLives;
+                CurrentLevel = 1;
+                this.levelsToWin = levelsToWin;
+                Points = 0;
             }
-            else
-            {
-                OnGameOver?.Invoke();
-            }
-        }
 
-        /// <summary>
-        /// Should be called when the player completes a level by reaching the door.
-        /// </summary>
-        public void LevelCompleted()
-        {
-            currentLevel++;
-            OnLevelChanged?.Invoke(currentLevel);
-            if (currentLevel > levelsToWin)
+            public int Lives { get; private set; }
+
+            public int CurrentLevel { get; private set; }
+
+            public int Points { get; private set; }
+
+            /// <summary>
+            ///     Adds the specified number of points and notifies listeners.
+            /// </summary>
+            /// <param name="pointsToAdd">Number of points to add.</param>
+            public void AddPoints(int pointsToAdd)
             {
-                OnWin?.Invoke();
+                Points += pointsToAdd;
+                OnPointsChanged?.Invoke(Points);
             }
-            else
+
+            /// <summary>
+            ///     Call to signal that a new level is starting.
+            /// </summary>
+            public void StartLevel()
             {
-                StartLevel();
+                OnLevelStart?.Invoke();
+            }
+
+            /// <summary>
+            ///     Call when the level ends (either by death or level completion).
+            /// </summary>
+            public void EndLevel()
+            {
+                OnLevelEnd?.Invoke();
+            }
+
+            /// <summary>
+            ///     Should be called when the player dies.
+            /// </summary>
+            public void PlayerDied()
+            {
+                Lives--;
+                OnLivesChanged?.Invoke(Lives);
+                if (Lives > 0)
+                {
+                    CurrentLevel++;
+                    OnLevelChanged?.Invoke(CurrentLevel);
+                    StartLevel();
+                }
+                else
+                {
+                    OnGameOver?.Invoke();
+                }
+            }
+
+            /// <summary>
+            ///     Should be called when the player completes a level by reaching the door.
+            /// </summary>
+            public void LevelCompleted()
+            {
+                CurrentLevel++;
+                OnLevelChanged?.Invoke(CurrentLevel);
+                if (CurrentLevel > levelsToWin)
+                    OnWin?.Invoke();
+                else
+                    StartLevel();
             }
         }
     }
-
 }

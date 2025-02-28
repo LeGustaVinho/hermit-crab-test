@@ -11,7 +11,7 @@
         private void OnTriggerEnter2D(Collider2D collision)
         {
             // Check if the colliding object is the player by looking for a CharacterController component.
-            if (collision.GetComponent<HermitCrab.Character.CharacterController>() != null)
+            if (collision.GetComponent<CharacterController>() != null)
             {
                 OnDoorTriggered?.Invoke();
             }

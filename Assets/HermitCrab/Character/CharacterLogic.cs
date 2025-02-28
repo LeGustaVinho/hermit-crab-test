@@ -189,5 +189,25 @@ namespace HermitCrab.Character
                 OnPunch?.Invoke();
             }
         }
+        
+        /// <summary>
+        /// Restores health by a specified amount, clamped to the maximum health.
+        /// </summary>
+        /// <param name="amount">Amount of health to restore.</param>
+        public void RestoreHealth(int amount)
+        {
+            Health = Mathf.Min(Health + amount, data.maxHealth);
+            OnHealthChanged?.Invoke(Health);
+        }
+
+        /// <summary>
+        /// Restores energy by a specified amount, clamped to the maximum energy.
+        /// </summary>
+        /// <param name="amount">Amount of energy to restore.</param>
+        public void RestoreEnergy(int amount)
+        {
+            Energy = Mathf.Min(Energy + amount, data.maxEnergy);
+            OnEnergyChanged?.Invoke(Energy);
+        }
     }
 }
