@@ -10,7 +10,7 @@ namespace HermitCrab.Character
         Ranged
     }
 
-/// <summary>
+    /// <summary>
     /// Implements AI for enemy characters.
     /// This controller uses a behavior tree to manage enemy states: hurt, chase, and patrol.
     /// When the enemy is hurt or the player is detected, it interrupts patrol and switches behavior accordingly.
@@ -181,7 +181,11 @@ namespace HermitCrab.Character
             float distToPlayer = Vector2.Distance(transform.position, player.position);
             if (distToPlayer <= attackRange)
             {
+                // Ensure enemy faces the player before attacking
+                float directionToPlayer = Mathf.Sign(player.position.x - transform.position.x);
+                enemyController.Move(directionToPlayer, false);
                 enemyController.Move(0, false);
+                
                 if (enemyType == EnemyType.Melee)
                 {
                     enemyController.Punch();

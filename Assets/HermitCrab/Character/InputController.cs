@@ -12,6 +12,8 @@ namespace HermitCrab.Character
 
         private void Update()
         {
+            if (characterController == null) return;
+            
             // Use GetAxisRaw to capture unsmoothed horizontal input.
             float horizontal = Input.GetAxisRaw("Horizontal");
             bool run = Input.GetKey(KeyCode.LeftShift);

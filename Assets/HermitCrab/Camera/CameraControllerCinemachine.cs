@@ -1,4 +1,5 @@
-﻿using Cinemachine;
+﻿using System;
+using Cinemachine;
 using UnityEngine;
 
 namespace HermitCrab.Camera
@@ -9,6 +10,8 @@ namespace HermitCrab.Camera
     /// </summary>
     public class CameraControllerCinemachine : MonoBehaviour
     {
+        public bool InitializeOnStart;
+        
         [Header("Target to Follow (usually the player)")]
         public Transform target;
 
@@ -28,12 +31,18 @@ namespace HermitCrab.Camera
         [Header("Confiner Options (Optional)")]
         public CinemachineConfiner confiner; // Optional: assign to limit the camera's view area
 
+        private void Start()
+        {
+            if (InitializeOnStart)
+                Initialize();
+        }
+
         /// <summary>
         /// Initializes the virtual camera by assigning the follow target and configuring the framing transposer.
         /// If no target is set, it attempts to find a GameObject tagged "Player".
         /// If a confiner is assigned, it adds (or configures) a CinemachineConfiner to limit camera boundaries.
         /// </summary>
-        private void Start()
+        public void Initialize()
         {
             // If the virtualCamera is not assigned via the Inspector, get it from the GameObject.
             if (virtualCamera == null)

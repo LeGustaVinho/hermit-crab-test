@@ -47,6 +47,9 @@ namespace HermitCrab.Character
         ///     The event passes the position of the attacker.
         /// </summary>
         public event Action<Vector3> OnDamageReceived;
+        
+        // New event to notify when the player dies.
+        public event Action OnPlayerDeath;
 
         #endregion
 
@@ -396,6 +399,7 @@ namespace HermitCrab.Character
             {
                 GameObject projInstance = Instantiate(characterData.projectilePrefab, projectileSpawnPoint.position,
                     Quaternion.identity);
+
                 ProjectileController controller = projInstance.GetComponent<ProjectileController>();
                 if (controller != null)
                 {
@@ -510,6 +514,9 @@ namespace HermitCrab.Character
             {
                 col.enabled = false;
             }
+            
+            // Fire the player death event.
+            OnPlayerDeath?.Invoke();
         }
 
         /// <summary>

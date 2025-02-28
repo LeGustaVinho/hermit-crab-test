@@ -60,6 +60,10 @@ PrefabInstance:
       propertyPath: m_Name
       value: EnemyZombieFemale
       objectReference: {fileID: 0}
+    - target: {fileID: 8550035753744643294, guid: 7512302c34ade0b4faf3ef75bc432ab4, type: 3}
+      propertyPath: projectileLayer.m_Bits
+      value: 512
+      objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []

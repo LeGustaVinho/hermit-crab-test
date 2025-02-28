@@ -10,5 +10,11 @@ namespace HermitCrab.Level
     {
         public int DamagePerSecond = 20;
         public float KnockbackForce = 5f;
+
+        // Movement configuration fields
+        public enum MovementType { Horizontal, Vertical }
+        public MovementType movementType = MovementType.Horizontal;
+        public float movementSpeed = 1f; // Speed at which the saw moves (units per second)
+        public float movementDistance = 3f; // Total distance the saw travels from one end to the other
     }
 }
