@@ -2,7 +2,6 @@
 using System.Collections.Generic;
 using HermitCrab.Character;
 using UnityEngine;
-using CharacterController = HermitCrab.Character.CharacterController;
 
 namespace HermitCrab.Level
 {
@@ -16,12 +15,12 @@ namespace HermitCrab.Level
         [Tooltip("Configuration for the spike hazard.")]
         public SpikeData spikeData;
 
-        private readonly Dictionary<CharacterController, Coroutine> _activeCoroutines =
-            new Dictionary<CharacterController, Coroutine>();
+        private readonly Dictionary<CharacterBehaviour, Coroutine> _activeCoroutines =
+            new Dictionary<CharacterBehaviour, Coroutine>();
 
         private void OnTriggerExit2D(Collider2D other)
         {
-            CharacterController character = other.GetComponent<CharacterController>();
+            CharacterBehaviour character = other.GetComponent<CharacterBehaviour>();
             if (character != null && _activeCoroutines.ContainsKey(character))
             {
                 if (_activeCoroutines[character] != null)
@@ -34,7 +33,7 @@ namespace HermitCrab.Level
 
         private void OnTriggerStay2D(Collider2D other)
         {
-            CharacterController character = other.GetComponent<CharacterController>();
+            CharacterBehaviour character = other.GetComponent<CharacterBehaviour>();
             if (character != null && !_activeCoroutines.ContainsKey(character))
             {
                 Coroutine routine = StartCoroutine(ApplySpikeDamage(character));
@@ -42,7 +41,7 @@ namespace HermitCrab.Level
             }
         }
 
-        private IEnumerator ApplySpikeDamage(CharacterController character)
+        private IEnumerator ApplySpikeDamage(CharacterBehaviour character)
         {
             while (character != null && IsCharacterWithinBounds(character))
             {
@@ -62,7 +61,7 @@ namespace HermitCrab.Level
             _activeCoroutines.Remove(character);
         }
 
-        private bool IsCharacterWithinBounds(CharacterController character)
+        private bool IsCharacterWithinBounds(CharacterBehaviour character)
         {
             Collider2D characterCollider = character.GetComponent<Collider2D>();
             Collider2D spikeCollider = GetComponent<Collider2D>();

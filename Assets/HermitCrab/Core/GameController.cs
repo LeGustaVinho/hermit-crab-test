@@ -7,7 +7,6 @@ using HermitCrab.Camera;
 using HermitCrab.Core.HermitCrab.Core;
 using HermitCrab.Level;
 using HermitCrab.Level.HermitCrab.Items;
-using CharacterController = HermitCrab.Character.CharacterController;
 
 namespace HermitCrab.Core
 {
@@ -38,7 +37,7 @@ namespace HermitCrab.Core
         public event Action<int> OnPointsChanged;
 
         // Lista para controlar os inimigos inscritos no evento de morte.
-        private List<CharacterController> enemyDeathSubscribers = new List<CharacterController>();
+        private List<CharacterBehaviour> enemyDeathSubscribers = new List<CharacterBehaviour>();
 
         private void Start()
         {
@@ -135,13 +134,13 @@ namespace HermitCrab.Core
             // Se já houver um player na cena, desinscreve os eventos e o destrói.
             if (currentPlayer != null)
             {
-                CharacterController oldPlayerController = currentPlayer.GetComponent<CharacterController>();
-                if (oldPlayerController != null)
+                CharacterBehaviour oldPlayerBehaviour = currentPlayer.GetComponent<CharacterBehaviour>();
+                if (oldPlayerBehaviour != null)
                 {
-                    oldPlayerController.OnPlayerDeath -= HandlePlayerDeath;
-                    oldPlayerController.OnHealthChanged -= Player_OnHealthChanged;
-                    oldPlayerController.OnEnergyChanged -= Player_OnEnergyChanged;
-                    oldPlayerController.OnItemCollected -= Player_OnItemCollected;
+                    oldPlayerBehaviour.OnPlayerDeath -= HandlePlayerDeath;
+                    oldPlayerBehaviour.OnHealthChanged -= Player_OnHealthChanged;
+                    oldPlayerBehaviour.OnEnergyChanged -= Player_OnEnergyChanged;
+                    oldPlayerBehaviour.OnItemCollected -= Player_OnItemCollected;
                 }
                 OnLevelEnded?.Invoke();
                 Destroy(currentPlayer);
@@ -152,10 +151,10 @@ namespace HermitCrab.Core
             EnemyAIController[] oldEnemyControllers = FindObjectsOfType<EnemyAIController>();
             foreach (var enemy in oldEnemyControllers)
             {
-                CharacterController enemyController = enemy.enemyController;
-                if (enemyController != null)
+                CharacterBehaviour enemyBehaviour = enemy.enemyBehaviour;
+                if (enemyBehaviour != null)
                 {
-                    enemyController.OnEnemyDeath -= Enemy_OnEnemyDeath;
+                    enemyBehaviour.OnEnemyDeath -= Enemy_OnEnemyDeath;
                 }
             }
             enemyDeathSubscribers.Clear();
@@ -182,16 +181,16 @@ namespace HermitCrab.Core
             currentPlayer = Instantiate(gameConfig.playerPrefab, spawnPosition, Quaternion.identity);
 
             // Bind the player to the input and camera controllers.
-            CharacterController playerController = currentPlayer.GetComponent<CharacterController>();
-            if (playerController != null)
+            CharacterBehaviour playerBehaviour = currentPlayer.GetComponent<CharacterBehaviour>();
+            if (playerBehaviour != null)
             {
                 // Subscribe to player's events BEFORE resetting stats.
-                playerController.OnPlayerDeath += HandlePlayerDeath;
-                playerController.OnHealthChanged += Player_OnHealthChanged;
-                playerController.OnEnergyChanged += Player_OnEnergyChanged;
-                playerController.OnItemCollected += Player_OnItemCollected;
+                playerBehaviour.OnPlayerDeath += HandlePlayerDeath;
+                playerBehaviour.OnHealthChanged += Player_OnHealthChanged;
+                playerBehaviour.OnEnergyChanged += Player_OnEnergyChanged;
+                playerBehaviour.OnItemCollected += Player_OnItemCollected;
 
-                inputController.characterController = playerController;
+                inputController.characterBehaviour = playerBehaviour;
                 cameraController.target = currentPlayer.transform;
                 cameraController.Initialize();
 
@@ -206,16 +205,16 @@ namespace HermitCrab.Core
                 // Subscribe to enemy death events.
                 foreach (var enemyAI in enemyControllers)
                 {
-                    CharacterController enemyController = enemyAI.enemyController;
-                    if (enemyController != null)
+                    CharacterBehaviour enemyBehaviour = enemyAI.enemyBehaviour;
+                    if (enemyBehaviour != null)
                     {
-                        enemyController.OnEnemyDeath += Enemy_OnEnemyDeath;
-                        enemyDeathSubscribers.Add(enemyController);
+                        enemyBehaviour.OnEnemyDeath += Enemy_OnEnemyDeath;
+                        enemyDeathSubscribers.Add(enemyBehaviour);
                     }
                 }
 
                 // Now reset player stats so that health and energy are at maximum.
-                playerController.ResetStats();
+                playerBehaviour.ResetStats();
             }
             else
             {
@@ -300,13 +299,13 @@ namespace HermitCrab.Core
             // Desinscreve os eventos do player, se existir.
             if (currentPlayer != null)
             {
-                CharacterController playerController = currentPlayer.GetComponent<CharacterController>();
-                if (playerController != null)
+                CharacterBehaviour playerBehaviour = currentPlayer.GetComponent<CharacterBehaviour>();
+                if (playerBehaviour != null)
                 {
-                    playerController.OnPlayerDeath -= HandlePlayerDeath;
-                    playerController.OnHealthChanged -= Player_OnHealthChanged;
-                    playerController.OnEnergyChanged -= Player_OnEnergyChanged;
-                    playerController.OnItemCollected -= Player_OnItemCollected;
+                    playerBehaviour.OnPlayerDeath -= HandlePlayerDeath;
+                    playerBehaviour.OnHealthChanged -= Player_OnHealthChanged;
+                    playerBehaviour.OnEnergyChanged -= Player_OnEnergyChanged;
+                    playerBehaviour.OnItemCollected -= Player_OnItemCollected;
                 }
             }
 

@@ -1,7 +1,6 @@
 ﻿using System;
 using HermitCrab.Character;
 using UnityEngine;
-using CharacterController = HermitCrab.Character.CharacterController;
 
 namespace HermitCrab.Level
 {
@@ -24,7 +23,7 @@ namespace HermitCrab.Level
 
             private void OnTriggerEnter2D(Collider2D collision)
             {
-                CharacterController character = collision.GetComponent<CharacterController>();
+                CharacterBehaviour character = collision.GetComponent<CharacterBehaviour>();
                 if (character != null && itemData != null)
                 {
                     // Apply item effects to the character.

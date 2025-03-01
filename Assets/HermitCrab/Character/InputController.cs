@@ -1,4 +1,5 @@
 ﻿using UnityEngine;
+using UnityEngine.Serialization;
 
 namespace HermitCrab.Character
 {
@@ -8,30 +9,30 @@ namespace HermitCrab.Character
     /// </summary>
     public class InputController : MonoBehaviour
     {
-        public CharacterController characterController;
+        [FormerlySerializedAs("characterController")] public CharacterBehaviour characterBehaviour;
 
         private void Update()
         {
-            if (characterController == null) return;
+            if (characterBehaviour == null) return;
             
             // Use GetAxisRaw to capture unsmoothed horizontal input.
             float horizontal = Input.GetAxisRaw("Horizontal");
             bool run = Input.GetKey(KeyCode.LeftShift);
-            characterController.Move(horizontal, run);
+            characterBehaviour.Move(horizontal, run);
 
             if (Input.GetKeyDown(KeyCode.Space))
             {
-                characterController.Jump();
+                characterBehaviour.Jump();
             }
 
             if (Input.GetKeyDown(KeyCode.Z))
             {
-                characterController.Shoot();
+                characterBehaviour.Shoot();
             }
 
             if (Input.GetKeyDown(KeyCode.X))
             {
-                characterController.Punch();
+                characterBehaviour.Punch();
             }
         }
 
@@ -40,7 +41,7 @@ namespace HermitCrab.Character
         /// </summary>
         public void OnMoveLeft()
         {
-            characterController.Move(-1f, false);
+            characterBehaviour.Move(-1f, false);
         }
 
         /// <summary>
@@ -48,7 +49,7 @@ namespace HermitCrab.Character
         /// </summary>
         public void OnMoveRight()
         {
-            characterController.Move(1f, false);
+            characterBehaviour.Move(1f, false);
         }
 
         /// <summary>
@@ -56,7 +57,7 @@ namespace HermitCrab.Character
         /// </summary>
         public void OnRunLeft()
         {
-            characterController.Move(-1f, true);
+            characterBehaviour.Move(-1f, true);
         }
 
         /// <summary>
@@ -64,7 +65,7 @@ namespace HermitCrab.Character
         /// </summary>
         public void OnRunRight()
         {
-            characterController.Move(1f, true);
+            characterBehaviour.Move(1f, true);
         }
 
         /// <summary>
@@ -72,7 +73,7 @@ namespace HermitCrab.Character
         /// </summary>
         public void OnJump()
         {
-            characterController.Jump();
+            characterBehaviour.Jump();
         }
 
         /// <summary>
@@ -80,7 +81,7 @@ namespace HermitCrab.Character
         /// </summary>
         public void OnShoot()
         {
-            characterController.Shoot();
+            characterBehaviour.Shoot();
         }
 
         /// <summary>
@@ -88,7 +89,7 @@ namespace HermitCrab.Character
         /// </summary>
         public void OnPunch()
         {
-            characterController.Punch();
+            characterBehaviour.Punch();
         }
     }
 }

@@ -1,7 +1,6 @@
 ﻿using System.Collections;
 using HermitCrab.Character;
 using UnityEngine;
-using CharacterController = HermitCrab.Character.CharacterController;
 
 namespace HermitCrab.Level
 {
@@ -56,7 +55,7 @@ namespace HermitCrab.Level
             Collider2D[] hits = Physics2D.OverlapCircleAll(transform.position, barrelData.PoisonRadius);
             foreach (Collider2D hit in hits)
             {
-                CharacterController character = hit.GetComponent<CharacterController>();
+                CharacterBehaviour character = hit.GetComponent<CharacterBehaviour>();
                 if (character != null)
                 {
                     character.StartCoroutine(ApplyPoisonDamage(character, barrelData.PoisonDuration, 
@@ -65,7 +64,7 @@ namespace HermitCrab.Level
             }
         }
 
-        private IEnumerator ApplyPoisonDamage(CharacterController character, float duration, int dps, Vector3 position)
+        private IEnumerator ApplyPoisonDamage(CharacterBehaviour character, float duration, int dps, Vector3 position)
         {
             // Set poison effect on the character.
             character.SetPoisoned(true);
@@ -95,7 +94,7 @@ namespace HermitCrab.Level
             foreach (Collider2D hit in hits)
             {
                 // Assumes CharacterController has a TakeDamage method as in your existing code.
-                CharacterController character = hit.GetComponent<CharacterController>();
+                CharacterBehaviour character = hit.GetComponent<CharacterBehaviour>();
                 if (character != null)
                 {
                     character.TakeDamage(DamageType.Environmental, barrelData.ExplosiveDamage, transform.position);

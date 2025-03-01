@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using HermitCrab.Core;
 using UnityEngine;
+using UnityEngine.Serialization;
 using Random = UnityEngine.Random;
 
 namespace HermitCrab.Character
@@ -23,7 +24,7 @@ namespace HermitCrab.Character
         
         [Header("Enemy Settings")] 
         public EnemyConfigData enemyConfig;
-        public CharacterController enemyController; // Reference to this enemy's CharacterController
+        [FormerlySerializedAs("enemyController")] public CharacterBehaviour enemyBehaviour; // Reference to this enemy's CharacterController
         public Transform player; // Reference to the player
 
         [Header("Ground Detection (Avoid Cliffs)")]
@@ -47,7 +48,7 @@ namespace HermitCrab.Character
         private BTNode behaviorTree;
 
         // Cache for the player's CharacterController to avoid repeated GetComponent calls.
-        private CharacterController playerController;
+        private CharacterBehaviour playerBehaviour;
 
         private void Start()
         {
@@ -60,9 +61,9 @@ namespace HermitCrab.Character
         /// </summary>
         public void Initialize()
         {
-            if (enemyController == null)
+            if (enemyBehaviour == null)
             {
-                enemyController = GetComponent<CharacterController>();
+                enemyBehaviour = GetComponent<CharacterBehaviour>();
             }
 
             if (player == null)
@@ -77,11 +78,11 @@ namespace HermitCrab.Character
             // Cache the player's CharacterController to avoid repeated GetComponent calls.
             if (player != null)
             {
-                playerController = player.GetComponent<CharacterController>();
+                playerBehaviour = player.GetComponent<CharacterBehaviour>();
             }
 
             // Subscribe to the OnDamageReceived event to react when the enemy takes damage.
-            enemyController.OnDamageReceived += OnDamaged;
+            enemyBehaviour.OnDamageReceived += OnDamaged;
             behaviorTree = BuildBehaviorTree();
         }
 
@@ -90,9 +91,9 @@ namespace HermitCrab.Character
         /// </summary>
         private void OnDestroy()
         {
-            if (enemyController != null)
+            if (enemyBehaviour != null)
             {
-                enemyController.OnDamageReceived -= OnDamaged;
+                enemyBehaviour.OnDamageReceived -= OnDamaged;
             }
         }
 
@@ -108,7 +109,7 @@ namespace HermitCrab.Character
                 if (hurtTimer < 0f) hurtTimer = 0f;
             }
 
-            if (enemyController == null || player == null)
+            if (enemyBehaviour == null || player == null)
                 return;
 
             behaviorTree.Execute();
@@ -177,11 +178,11 @@ namespace HermitCrab.Character
             if (dist > 0.2f)
             {
                 Vector2 direction = (lastKnownPlayerPos - transform.position).normalized;
-                enemyController.Move(direction.x, false);
+                enemyBehaviour.Move(direction.x, false);
                 return BTStatus.Running;
             }
 
-            enemyController.Move(0, false);
+            enemyBehaviour.Move(0, false);
             if (hurtTimer > 0f)
             {
                 return BTStatus.Running;
@@ -203,16 +204,16 @@ namespace HermitCrab.Character
             {
                 // Ensure enemy faces the player before attacking
                 float directionToPlayer = Mathf.Sign(player.position.x - transform.position.x);
-                enemyController.Move(directionToPlayer, false);
-                enemyController.Move(0, false);
+                enemyBehaviour.Move(directionToPlayer, false);
+                enemyBehaviour.Move(0, false);
                 
                 if (enemyConfig.enemyType == EnemyType.Melee)
                 {
-                    enemyController.Punch();
+                    enemyBehaviour.Punch();
                 }
                 else
                 {
-                    enemyController.Shoot();
+                    enemyBehaviour.Shoot();
                 }
                 return BTStatus.Success;
             }
@@ -220,11 +221,11 @@ namespace HermitCrab.Character
             if (HasGroundAhead())
             {
                 Vector2 direction = (player.position - transform.position).normalized;
-                enemyController.Move(direction.x, false);
+                enemyBehaviour.Move(direction.x, false);
             }
             else
             {
-                enemyController.Move(0, false);
+                enemyBehaviour.Move(0, false);
             }
             return BTStatus.Running;
         }
@@ -239,7 +240,7 @@ namespace HermitCrab.Character
         {
             // Interrupt patrol if enemy is hurt or player is within detection range and alive.
             if (isHurt || (Vector2.Distance(transform.position, player.position) <= enemyConfig.detectionRange &&
-                playerController?.IsAlive == true))
+                playerBehaviour?.IsAlive == true))
             {
                 isPatrolling = false;
                 isWaiting = false;
@@ -263,17 +264,17 @@ namespace HermitCrab.Character
                 {
                     if (HasGroundAhead())
                     {
-                        enemyController.Move(patrolDirection, false);
+                        enemyBehaviour.Move(patrolDirection, false);
                     }
                     else
                     {
-                        enemyController.Move(0, false);
+                        enemyBehaviour.Move(0, false);
                     }
                     return BTStatus.Running;
                 }
 
                 // Reached patrol destination; begin waiting period.
-                enemyController.Move(0, false);
+                enemyBehaviour.Move(0, false);
                 isPatrolling = false;
                 isWaiting = true;
                 waitTimer = Random.Range(enemyConfig.patrolWaitMin, enemyConfig.patrolWaitMax);
@@ -283,7 +284,7 @@ namespace HermitCrab.Character
             if (isWaiting)
             {
                 waitTimer -= Time.deltaTime;
-                enemyController.Move(0, false);
+                enemyBehaviour.Move(0, false);
                 if (waitTimer <= 0f)
                 {
                     isWaiting = false;
@@ -307,7 +308,7 @@ namespace HermitCrab.Character
             {
                 // If the player is within detection range and alive, execute the chase branch.
                 if (Vector2.Distance(transform.position, player.position) <= enemyConfig.detectionRange &&
-                    playerController.IsAlive)
+                    playerBehaviour.IsAlive)
                 {
                     return ChaseBranch();
                 }

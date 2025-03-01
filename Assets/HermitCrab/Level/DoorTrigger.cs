@@ -1,6 +1,6 @@
 ﻿using System;
+using HermitCrab.Character;
 using UnityEngine;
-using CharacterController = HermitCrab.Character.CharacterController;
 
 namespace HermitCrab.Level
 {
@@ -12,7 +12,7 @@ namespace HermitCrab.Level
         private void OnTriggerEnter2D(Collider2D collision)
         {
             // Check if the colliding object is the player by looking for a CharacterController component.
-            if (collision.GetComponent<CharacterController>() != null)
+            if (collision.GetComponent<CharacterBehaviour>() != null)
             {
                 OnDoorTriggered?.Invoke();
             }

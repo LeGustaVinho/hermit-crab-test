@@ -2,7 +2,6 @@
 using System.Collections.Generic;
 using HermitCrab.Character;
 using UnityEngine;
-using CharacterController = HermitCrab.Character.CharacterController;
 
 namespace HermitCrab.Level
 {
@@ -15,8 +14,8 @@ namespace HermitCrab.Level
         [Tooltip("Configuration for the saw hazard.")]
         public SawData sawData;
 
-        private readonly Dictionary<CharacterController, Coroutine> _activeCoroutines =
-            new Dictionary<CharacterController, Coroutine>();
+        private readonly Dictionary<CharacterBehaviour, Coroutine> _activeCoroutines =
+            new Dictionary<CharacterBehaviour, Coroutine>();
 
         // Fields for saw movement
         private Vector3 startPosition;
@@ -43,7 +42,7 @@ namespace HermitCrab.Level
 
         private void OnTriggerExit2D(Collider2D other)
         {
-            CharacterController character = other.GetComponent<CharacterController>();
+            CharacterBehaviour character = other.GetComponent<CharacterBehaviour>();
             if (character != null && _activeCoroutines.ContainsKey(character))
             {
                 StopCoroutine(_activeCoroutines[character]);
@@ -53,7 +52,7 @@ namespace HermitCrab.Level
 
         private void OnTriggerStay2D(Collider2D other)
         {
-            CharacterController character = other.GetComponent<CharacterController>();
+            CharacterBehaviour character = other.GetComponent<CharacterBehaviour>();
             if (character != null && !_activeCoroutines.ContainsKey(character))
             {
                 Coroutine routine = StartCoroutine(ApplySawDamage(character));
@@ -61,7 +60,7 @@ namespace HermitCrab.Level
             }
         }
 
-        private IEnumerator ApplySawDamage(CharacterController character)
+        private IEnumerator ApplySawDamage(CharacterBehaviour character)
         {
             while (character != null && IsCharacterWithinBounds(character))
             {
@@ -81,7 +80,7 @@ namespace HermitCrab.Level
             _activeCoroutines.Remove(character);
         }
 
-        private bool IsCharacterWithinBounds(CharacterController character)
+        private bool IsCharacterWithinBounds(CharacterBehaviour character)
         {
             Collider2D characterCollider = character.GetComponent<Collider2D>();
             Collider2D sawCollider = GetComponent<Collider2D>();

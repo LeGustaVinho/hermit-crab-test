@@ -74,7 +74,7 @@ namespace HermitCrab.Character
             }
 
             // Otherwise, check if it's a CharacterController.
-            CharacterController target = collision.gameObject.GetComponent<CharacterController>();
+            CharacterBehaviour target = collision.gameObject.GetComponent<CharacterBehaviour>();
             if (target != null)
             {
                 target.TakeDamage(DamageType.Projectile, damage, attackerPosition);
