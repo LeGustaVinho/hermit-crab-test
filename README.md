@@ -190,78 +190,75 @@ Health and energy.
 
 **Responsibility:** Utility class that centralizes the creation of GameObjects, such as projectiles and environmental objects, ensuring proper initialization.
 
-### Implementação da Behavior Tree
-A Behavior Tree para a IA dos inimigos é implementada com as seguintes classes:
+### Behavior Tree Implementation
+The Behavior Tree for enemy AI is implemented with the following classes:
 
-- **BTNode:** Classe base abstrata para os nós da árvore.
-- **BTAction & BTCondition:** Nós que executam ações ou avaliam condições, retornando um status (Success, Failure ou Running).
-- **StatelessBTSequence & StatelessBTSelector:** Nós compostos que gerenciam a execução sequencial ou seletiva dos nós filhos.
+- **BTNode:** Abstract base class for tree nodes.
+- **BTAction & BTCondition:** Nodes that execute actions or evaluate conditions, returning a status (Success, Failure or Running).
+- **StatelessBTSequence & StatelessBTSelector:** Composite nodes that manage the sequential or selective execution of child nodes.
 
 ### ProceduralLevelGeneratorRuntime
 
-Responsabilidade: Gera níveis de forma procedural, utilizando parâmetros configuráveis para:
-Criação de plataformas (piso), lacunas (gaps) e preenchimento de áreas.
-Inserção de obstáculos (espinhos, barris explosivos/venenosos, serras) e itens coletáveis.
-Definição dos pontos de spawn (início) e de vitória (fim do nível).
-Criação de elementos de fundo e paredes verticais para delimitar o nível.
-Obstáculos e Itens:
+Responsibility: Generates levels procedurally, using configurable parameters for:
+Creating platforms (floors), gaps and filling areas.
+Inserting obstacles (spikes, explosive/poisonous barrels, saws) and collectible items.
+Defining the spawn (start) and victory (end of the level) points.
+Creating background elements and vertical walls to delimit the level.
+Obstacles and Items:
 
-### Obstáculos e Itens:
--** Saw & SawData:** Implementam o comportamento de uma serra móvel que causa dano contínuo e knockback.
-- **Spike & SpikeData**: Representam espinhos fixos que causam dano e empurrão ao contato.
-- **CollectibleItem & CollectibleItemData:** Gerenciam itens que restauram energia ou saúde ao serem coletados.
-- **DoorTrigger:** Detecta a entrada do jogador em um “portal” que finaliza o nível.
-- ** Barrel, BarrelLogic & BarrelData:**
-    - **Barrel:** Componente que reage a danos e, conforme o tipo (Explosivo ou Venenoso), executa a explosão (causando dano, knockback) ou aplica efeito de veneno.
-      -** BarrelLogic:** Lógica independente para gerenciar a ativação do barril.
-    - **BarrelData:** ScriptableObject com configurações (dano, raio de explosão, parâmetros de veneno).
+### Obstacles and Items:
+- **Saw & SawData:** Implements the behavior of a mobile saw that causes continuous damage and knockback.
+- **Spike & SpikeData**: Represents fixed spikes that cause damage and knockback on contact.
+- **CollectibleItem & CollectibleItemData:** Manages items that restore energy or health when collected.
+- **DoorTrigger:** Detects the player entering a “portal” that ends the level.
+- **Barrel, BarrelLogic & BarrelData:**
+    - **Barrel:** Component that reacts to damage and, depending on the type (Explosive or Poisonous), performs the explosion (causing damage, knockback) or applies a poison effect.
+    - **BarrelLogic:** Independent logic to manage barrel activation.
+    - **BarrelData:** ScriptableObject with settings (damage, explosion radius, poison parameters).
 
 ### MainScreenView
 
-**Responsabilidade:** Exibe a tela principal (menu inicial) e gerencia o botão para iniciar o nível.
+**Responsibility:** Displays the main screen (start menu) and manages the button to start the level.
 
 ### LevelScreenView
 
-**Responsabilidade:** Exibe o HUD durante a partida, incluindo:
-- Barras de saúde e energia.
-- Indicadores de vidas e pontuação.
-- Botões de controle para entrada via toque (movimentação, salto, tiro, soco).
+**Responsibility:** Displays the HUD during the game, including:
+- Health and energy bars.
+- Life and score indicators.
+- Control buttons for touch input (movement, jump, shooting, punching).
 
 ### PopupView
 
-**Responsabilidade:** Exibe mensagens emergentes (pop-ups) com feedback para o jogador e botão de fechamento.
+**Responsibility:** Displays pop-ups with feedback to the player and a close button.
 
 ### EndScreenView
 
-**Responsabilidade:** Exibe a tela final do jogo, diferenciando entre vitória e derrota, e mostra a pontuação final.
+**Responsibility:** Displays the end screen of the game, differentiating between victory and defeat, and showing the final score.
 
 ### UIController
 
-**Responsabilidade:** Atua como o coordenador da interface, conectando as views aos eventos do GameController e InputController. Gerencia:
-- A alternância entre telas (menu principal, HUD, pop-up, fim de jogo).
-- A propagação dos eventos de entrada para os sistemas do jogo.
+**Responsibility:** Acts as the interface coordinator, connecting the views to the GameController and InputController events. Manages:
+- Switching between screens (main menu, HUD, pop-up, end of game).
+- Propagating input events to the game systems.
 
 ### ContinuousPointerEventUpdate
 
-**Responsabilidade:** Dispara eventos repetidos enquanto o usuário mantém pressionado um botão, ideal para controles móveis (ex.: movimentação contínua).
+**Responsibility:** Triggers repeated events while the user holds down a button, ideal for mobile controls (e.g.: continuous movement).
 
+## General Considerations
 
-## Considerações Gerais
+- **Modularity and Configuration:** The extensive use of ScriptableObjects (such as CharacterData, GameConfig, BarrelData, etc.) allows you to adjust game parameters without having to change the code, facilitating testing and balancing.
 
-- **Modularidade e Configuração:**
-  O uso extensivo de ScriptableObjects (como CharacterData, GameConfig, BarrelData, etc.) permite ajustar os parâmetros do jogo sem a necessidade de alterar o código, facilitando testes e balanceamento.
+- **Integration between Systems:** The GameController acts as a central hub, coordinating level generation, instantiating the player, configuring the camera, and propagating events between subsystems (characters, AI, UI).
 
-- **Integração entre Sistemas:**
-  O GameController atua como hub central, coordenando a geração de níveis, instanciando o jogador, configurando a câmera e propagando eventos entre os subsistemas (personagens, IA, UI).
+- **Behavior Tree for AI:**
+  The Behavior Tree implementation, while simple, organizes enemy AI in a clear and extensible way, prioritizing behaviors such as reacting to damage, chasing the player, and patrolling.
 
-- **Behavior Tree para IA:**
-  A implementação da Behavior Tree, embora simples, organiza a IA dos inimigos de maneira clara e extensível, priorizando comportamentos como reação a danos, perseguição do jogador e patrulha.
+- **Procedural Generation:**
+  The level generator uses a grid-based approach, with variations controlled by configurable probabilities to insert gaps, obstacles, enemies, and items, enabling dynamic and varied levels in each match.
 
-- **Geração Procedural:**
-  O gerador de níveis utiliza uma abordagem baseada em grid, com variações controladas por probabilidades configuráveis para inserir lacunas, obstáculos, inimigos e itens, possibilitando níveis dinâmicos e variados a cada partida.
-
-- **Interface Adaptativa:**
-  Os componentes de UI foram desenvolvidos para funcionar em plataformas desktop e móveis, com controles específicos para entrada por toque e feedback visual consistente (barras de saúde, pontuação, etc).
+- **Adaptive Interface:**
+  The UI components were developed to work on both desktop and mobile platforms, with specific controls for touch input and consistent visual feedback (health bars, score, etc.).
 
 ### Behavior Tree Implementation
 The Behavior Tree for enemy AI is implemented with the following classes:
