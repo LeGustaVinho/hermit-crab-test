@@ -17,22 +17,13 @@ namespace HermitCrab.Character
     /// </summary>
     public class EnemyAIController : MonoBehaviour
     {
-        [Header("Enemy Settings")]
-        public EnemyType enemyType; // Melee or Ranged
+        [Header("Enemy Settings")] 
+        public EnemyConfigData enemyConfig;
         public CharacterController enemyController; // Reference to this enemy's CharacterController
         public Transform player; // Reference to the player
-        public float detectionRange = 10f; // Range within which the enemy detects the player
-        public float attackRange = 2f; // Range within which the enemy attacks
-
-        [Header("Random Patrol Settings")]
-        public float patrolDistanceMin = 3f;
-        public float patrolDistanceMax = 6f;
-        public float patrolWaitMin = 2f;
-        public float patrolWaitMax = 4f;
 
         [Header("Ground Detection (Avoid Cliffs)")]
         public Transform groundDetector; // Point used to detect ground ahead
-        public float groundDetectionDistance = 1f; // Distance to check for ground
         public LayerMask groundLayer; // Ground layer
 
         // Variables for hurt behavior (when the enemy takes damage)
@@ -50,6 +41,9 @@ namespace HermitCrab.Character
 
         // Behavior tree root node.
         private BTNode behaviorTree;
+
+        // Cache for the player's CharacterController to avoid repeated GetComponent calls.
+        private CharacterController playerController;
 
         /// <summary>
         /// Initializes the enemy AI, sets up necessary references, and builds the behavior tree.
@@ -71,9 +65,26 @@ namespace HermitCrab.Character
                 }
             }
 
+            // Cache the player's CharacterController to avoid repeated GetComponent calls.
+            if (player != null)
+            {
+                playerController = player.GetComponent<CharacterController>();
+            }
+
             // Subscribe to the OnDamageReceived event to react when the enemy takes damage.
             enemyController.OnDamageReceived += OnDamaged;
             behaviorTree = BuildBehaviorTree();
+        }
+
+        /// <summary>
+        /// Unsubscribes from the OnDamageReceived event when this object is destroyed.
+        /// </summary>
+        private void OnDestroy()
+        {
+            if (enemyController != null)
+            {
+                enemyController.OnDamageReceived -= OnDamaged;
+            }
         }
 
         /// <summary>
@@ -101,12 +112,12 @@ namespace HermitCrab.Character
         private void OnDrawGizmosSelected()
         {
             Gizmos.color = Color.yellow;
-            Gizmos.DrawWireSphere(transform.position, detectionRange);
+            Gizmos.DrawWireSphere(transform.position, enemyConfig.detectionRange);
             if (groundDetector != null)
             {
                 Gizmos.color = Color.blue;
                 Gizmos.DrawLine(groundDetector.position,
-                    groundDetector.position + Vector3.down * groundDetectionDistance);
+                    groundDetector.position + Vector3.down * enemyConfig.groundDetectionDistance);
             }
         }
 
@@ -121,7 +132,7 @@ namespace HermitCrab.Character
                 return true;
             }
 
-            RaycastHit2D hit = Physics2D.Raycast(groundDetector.position, Vector2.down, groundDetectionDistance, groundLayer);
+            RaycastHit2D hit = Physics2D.Raycast(groundDetector.position, Vector2.down, enemyConfig.groundDetectionDistance, groundLayer);
             return hit.collider != null;
         }
 
@@ -179,14 +190,14 @@ namespace HermitCrab.Character
         private BTStatus ChaseBranch()
         {
             float distToPlayer = Vector2.Distance(transform.position, player.position);
-            if (distToPlayer <= attackRange)
+            if (distToPlayer <= enemyConfig.attackRange)
             {
                 // Ensure enemy faces the player before attacking
                 float directionToPlayer = Mathf.Sign(player.position.x - transform.position.x);
                 enemyController.Move(directionToPlayer, false);
                 enemyController.Move(0, false);
                 
-                if (enemyType == EnemyType.Melee)
+                if (enemyConfig.enemyType == EnemyType.Melee)
                 {
                     enemyController.Punch();
                 }
@@ -218,8 +229,8 @@ namespace HermitCrab.Character
         private BTStatus PatrolBranch()
         {
             // Interrupt patrol if enemy is hurt or player is within detection range and alive.
-            if (isHurt || (Vector2.Distance(transform.position, player.position) <= detectionRange &&
-                player.GetComponent<CharacterController>()?.IsAlive == true))
+            if (isHurt || (Vector2.Distance(transform.position, player.position) <= enemyConfig.detectionRange &&
+                playerController?.IsAlive == true))
             {
                 isPatrolling = false;
                 isWaiting = false;
@@ -231,7 +242,7 @@ namespace HermitCrab.Character
                 // Start a new patrol cycle: choose a random direction and distance.
                 isPatrolling = true;
                 patrolDirection = Random.value < 0.5f ? -1f : 1f;
-                patrolDistanceRemaining = Random.Range(patrolDistanceMin, patrolDistanceMax);
+                patrolDistanceRemaining = Random.Range(enemyConfig.patrolDistanceMin, enemyConfig.patrolDistanceMax);
                 patrolStartPosition = transform.position.x;
                 return BTStatus.Running;
             }
@@ -256,7 +267,7 @@ namespace HermitCrab.Character
                 enemyController.Move(0, false);
                 isPatrolling = false;
                 isWaiting = true;
-                waitTimer = Random.Range(patrolWaitMin, patrolWaitMax);
+                waitTimer = Random.Range(enemyConfig.patrolWaitMin, enemyConfig.patrolWaitMax);
                 return BTStatus.Running;
             }
 
@@ -286,8 +297,8 @@ namespace HermitCrab.Character
             BTNode chaseNode = new BTAction(() =>
             {
                 // If the player is within detection range and alive, execute the chase branch.
-                if (Vector2.Distance(transform.position, player.position) <= detectionRange &&
-                    player.GetComponent<CharacterController>()?.IsAlive == true)
+                if (Vector2.Distance(transform.position, player.position) <= enemyConfig.detectionRange &&
+                    playerController?.IsAlive == true)
                 {
                     return ChaseBranch();
                 }

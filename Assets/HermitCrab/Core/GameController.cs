@@ -1,10 +1,12 @@
 ﻿using System;
 using System.Collections;
+using System.Collections.Generic;
 using UnityEngine;
 using HermitCrab.Character;
 using HermitCrab.Camera;
 using HermitCrab.Core.HermitCrab.Core;
 using HermitCrab.Level;
+using HermitCrab.Level.HermitCrab.Items;
 using CharacterController = HermitCrab.Character.CharacterController;
 
 namespace HermitCrab.Core
@@ -35,6 +37,9 @@ namespace HermitCrab.Core
         public event Action<int> OnPlayerEnergyChanged;
         public event Action<int> OnPointsChanged;
 
+        // Lista para controlar os inimigos inscritos no evento de morte.
+        private List<CharacterController> enemyDeathSubscribers = new List<CharacterController>();
+
         private void Start()
         {
             // Initialize game logic.
@@ -46,19 +51,72 @@ namespace HermitCrab.Core
         /// </summary>
         public void ResetGame()
         {
+            if (gameLogic != null)
+            {
+                UnsubscribeGameLogicEvents(gameLogic);
+            }
             gameLogic = new GameLogic(gameConfig.initialLives, gameConfig.levelsToWin);
             SubscribeGameLogicEvents(gameLogic);
         }
 
         private void SubscribeGameLogicEvents(GameLogic logic)
         {
-            logic.OnLevelStart += () => { OnLevelStarted?.Invoke(); };
-            logic.OnLevelEnd += () => { OnLevelEnded?.Invoke(); };
-            logic.OnLevelChanged += (level) => { OnLevelChanged?.Invoke(level); };
-            logic.OnLivesChanged += (lives) => { OnLivesChanged?.Invoke(lives); };
-            logic.OnGameOver += () => { OnGameOver?.Invoke(); };
-            logic.OnWin += () => { OnGameWin?.Invoke(); };
-            logic.OnPointsChanged += (points) => { OnPointsChanged?.Invoke(points); };
+            logic.OnLevelStart += GameLogic_OnLevelStart;
+            logic.OnLevelEnd += GameLogic_OnLevelEnd;
+            logic.OnLevelChanged += GameLogic_OnLevelChanged;
+            logic.OnLivesChanged += GameLogic_OnLivesChanged;
+            logic.OnGameOver += GameLogic_OnGameOver;
+            logic.OnWin += GameLogic_OnWin;
+            logic.OnPointsChanged += GameLogic_OnPointsChanged;
+        }
+
+        private void UnsubscribeGameLogicEvents(GameLogic logic)
+        {
+            if (logic != null)
+            {
+                logic.OnLevelStart -= GameLogic_OnLevelStart;
+                logic.OnLevelEnd -= GameLogic_OnLevelEnd;
+                logic.OnLevelChanged -= GameLogic_OnLevelChanged;
+                logic.OnLivesChanged -= GameLogic_OnLivesChanged;
+                logic.OnGameOver -= GameLogic_OnGameOver;
+                logic.OnWin -= GameLogic_OnWin;
+                logic.OnPointsChanged -= GameLogic_OnPointsChanged;
+            }
+        }
+
+        private void GameLogic_OnLevelStart()
+        {
+            OnLevelStarted?.Invoke();
+        }
+
+        private void GameLogic_OnLevelEnd()
+        {
+            OnLevelEnded?.Invoke();
+        }
+
+        private void GameLogic_OnLevelChanged(int level)
+        {
+            OnLevelChanged?.Invoke(level);
+        }
+
+        private void GameLogic_OnLivesChanged(int lives)
+        {
+            OnLivesChanged?.Invoke(lives);
+        }
+
+        private void GameLogic_OnGameOver()
+        {
+            OnGameOver?.Invoke();
+        }
+
+        private void GameLogic_OnWin()
+        {
+            OnGameWin?.Invoke();
+        }
+
+        private void GameLogic_OnPointsChanged(int points)
+        {
+            OnPointsChanged?.Invoke(points);
         }
 
         // Expose the final score.
@@ -74,18 +132,38 @@ namespace HermitCrab.Core
         /// </summary>
         private IEnumerator StartLevelRoutine()
         {
-            // Signal level end if there was a previous level.
+            // Se já houver um player na cena, desinscreve os eventos e o destrói.
             if (currentPlayer != null)
             {
+                CharacterController oldPlayerController = currentPlayer.GetComponent<CharacterController>();
+                if (oldPlayerController != null)
+                {
+                    oldPlayerController.OnPlayerDeath -= HandlePlayerDeath;
+                    oldPlayerController.OnHealthChanged -= Player_OnHealthChanged;
+                    oldPlayerController.OnEnergyChanged -= Player_OnEnergyChanged;
+                    oldPlayerController.OnItemCollected -= Player_OnItemCollected;
+                }
                 OnLevelEnded?.Invoke();
                 Destroy(currentPlayer);
+                currentPlayer = null;
             }
 
-            // Destroy previous level's procedural objects.
-            GameObject previousLevel = GameObject.Find("ProceduralLevel");
-            if (previousLevel != null)
+            // Desinscreve os eventos de morte dos inimigos do nível anterior.
+            EnemyAIController[] oldEnemyControllers = FindObjectsOfType<EnemyAIController>();
+            foreach (var enemy in oldEnemyControllers)
             {
-                Destroy(previousLevel);
+                CharacterController enemyController = enemy.enemyController;
+                if (enemyController != null)
+                {
+                    enemyController.OnEnemyDeath -= Enemy_OnEnemyDeath;
+                }
+            }
+            enemyDeathSubscribers.Clear();
+
+            // Destroy previous level's procedural objects.
+            if (levelGenerator.ProceduralLevelInstance != null)
+            {
+                Destroy(levelGenerator.ProceduralLevelInstance);
             }
 
             // Generate a new level.
@@ -94,15 +172,13 @@ namespace HermitCrab.Core
             // Wait one frame to allow level generation to complete.
             yield return null;
 
-            // Find the spawn position from "DoorLocked(Clone)".
-            GameObject doorLocked = GameObject.Find("DoorLocked(Clone)");
-            if (doorLocked == null)
+            // Get the spawn position from DoorLockedInstance.
+            if (levelGenerator.DoorLockedInstance == null)
             {
-                Debug.LogError("DoorLocked(Clone) not found in the scene. Cannot spawn player.");
+                Debug.LogError("DoorLocked instance not set. Cannot spawn player.");
                 yield break;
             }
-
-            Vector3 spawnPosition = doorLocked.transform.position;
+            Vector3 spawnPosition = levelGenerator.DoorLockedInstance.transform.position;
             currentPlayer = Instantiate(gameConfig.playerPrefab, spawnPosition, Quaternion.identity);
 
             // Bind the player to the input and camera controllers.
@@ -111,14 +187,9 @@ namespace HermitCrab.Core
             {
                 // Subscribe to player's events BEFORE resetting stats.
                 playerController.OnPlayerDeath += HandlePlayerDeath;
-                playerController.OnHealthChanged += (health) =>
-                {
-                    OnPlayerHealthChanged?.Invoke(health);
-                };
-                playerController.OnEnergyChanged += (energy) =>
-                {
-                    OnPlayerEnergyChanged?.Invoke(energy);
-                };
+                playerController.OnHealthChanged += Player_OnHealthChanged;
+                playerController.OnEnergyChanged += Player_OnEnergyChanged;
+                playerController.OnItemCollected += Player_OnItemCollected;
 
                 inputController.characterController = playerController;
                 cameraController.target = currentPlayer.transform;
@@ -131,22 +202,14 @@ namespace HermitCrab.Core
                     enemy.player = currentPlayer.transform;
                 }
 
-                // Subscribe to the player's item collection event.
-                playerController.OnItemCollected += (itemData) =>
-                {
-                    gameLogic.AddPoints(gameConfig.collectibleItemPoints);
-                };
-
                 // Subscribe to enemy death events.
                 foreach (var enemyAI in enemyControllers)
                 {
                     CharacterController enemyController = enemyAI.enemyController;
                     if (enemyController != null)
                     {
-                        enemyController.OnEnemyDeath += () =>
-                        {
-                            gameLogic.AddPoints(gameConfig.enemyKillPoints);
-                        };
+                        enemyController.OnEnemyDeath += Enemy_OnEnemyDeath;
+                        enemyDeathSubscribers.Add(enemyController);
                     }
                 }
 
@@ -158,9 +221,8 @@ namespace HermitCrab.Core
                 Debug.LogError("Player prefab does not have a CharacterController component.");
             }
 
-            // Find the door trigger instance from "DoorOpen(Clone)" and subscribe to its event.
-            GameObject doorOpen = GameObject.Find("DoorOpen(Clone)");
-            if (doorOpen != null)
+            // Get the door trigger instance from DoorOpenInstance and subscribe to its event.
+            if (levelGenerator.DoorOpenInstance != null)
             {
                 // Remove any previous subscription if exists.
                 if (currentDoorTrigger != null)
@@ -168,19 +230,19 @@ namespace HermitCrab.Core
                     currentDoorTrigger.OnDoorTriggered -= HandleDoorTriggered;
                 }
 
-                currentDoorTrigger = doorOpen.GetComponent<DoorTrigger>();
+                currentDoorTrigger = levelGenerator.DoorOpenInstance.GetComponent<DoorTrigger>();
                 if (currentDoorTrigger != null)
                 {
                     currentDoorTrigger.OnDoorTriggered += HandleDoorTriggered;
                 }
                 else
                 {
-                    Debug.LogError("DoorOpen(Clone) does not have a DoorTrigger component.");
+                    Debug.LogError("DoorOpen instance does not have a DoorTrigger component.");
                 }
             }
             else
             {
-                Debug.LogError("DoorOpen(Clone) not found in the scene.");
+                Debug.LogError("DoorOpen instance not found in the scene.");
             }
 
             // Signal that a new level has started.
@@ -207,6 +269,61 @@ namespace HermitCrab.Core
         {
             gameLogic.LevelCompleted();
             StartCoroutine(StartLevelRoutine());
+        }
+
+        private void Player_OnHealthChanged(int health)
+        {
+            OnPlayerHealthChanged?.Invoke(health);
+        }
+
+        private void Player_OnEnergyChanged(int energy)
+        {
+            OnPlayerEnergyChanged?.Invoke(energy);
+        }
+
+        private void Player_OnItemCollected(CollectibleItemData itemData)
+        {
+            gameLogic.AddPoints(gameConfig.collectibleItemPoints);
+        }
+
+        private void Enemy_OnEnemyDeath()
+        {
+            gameLogic.AddPoints(gameConfig.enemyKillPoints);
+        }
+
+        private void OnDestroy()
+        {
+            // Desinscreve os eventos do GameLogic.
+            UnsubscribeGameLogicEvents(gameLogic);
+
+            // Desinscreve os eventos do player, se existir.
+            if (currentPlayer != null)
+            {
+                CharacterController playerController = currentPlayer.GetComponent<CharacterController>();
+                if (playerController != null)
+                {
+                    playerController.OnPlayerDeath -= HandlePlayerDeath;
+                    playerController.OnHealthChanged -= Player_OnHealthChanged;
+                    playerController.OnEnergyChanged -= Player_OnEnergyChanged;
+                    playerController.OnItemCollected -= Player_OnItemCollected;
+                }
+            }
+
+            // Desinscreve os eventos de morte dos inimigos.
+            foreach (var enemyController in enemyDeathSubscribers)
+            {
+                if (enemyController != null)
+                {
+                    enemyController.OnEnemyDeath -= Enemy_OnEnemyDeath;
+                }
+            }
+            enemyDeathSubscribers.Clear();
+
+            // Desinscreve o evento do DoorTrigger.
+            if (currentDoorTrigger != null)
+            {
+                currentDoorTrigger.OnDoorTriggered -= HandleDoorTriggered;
+            }
         }
     }
 }

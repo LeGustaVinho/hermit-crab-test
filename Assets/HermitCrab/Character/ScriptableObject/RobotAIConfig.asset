@@ -1,0 +1,24 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 2a5eadd44b8c41e08d57f602405c40f0, type: 3}
+  m_Name: RobotAIConfig
+  m_EditorClassIdentifier: 
+  detectionRange: 10
+  attackRange: 30
+  enemyType: 1
+  patrolDistanceMin: 3
+  patrolDistanceMax: 6
+  patrolWaitMin: 2
+  patrolWaitMax: 4
+  groundDetectionDistance: 1
+  hurtDistanceThreshold: 0.2
+  hurtDuration: 5

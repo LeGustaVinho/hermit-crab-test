@@ -14,7 +14,19 @@ namespace HermitCrab.UI
         private void Awake()
         {
             if (CloseButton != null)
-                CloseButton.onClick.AddListener(() => OnCloseClicked?.Invoke());
+                CloseButton.onClick.AddListener(HandleCloseButtonClicked);
+        }
+
+        // Called when the Close button is clicked.
+        private void HandleCloseButtonClicked()
+        {
+            OnCloseClicked?.Invoke();
+        }
+        
+        private void OnDestroy()
+        {
+            if (CloseButton != null)
+                CloseButton.onClick.RemoveListener(HandleCloseButtonClicked);
         }
 
         // Sets the popup message text.

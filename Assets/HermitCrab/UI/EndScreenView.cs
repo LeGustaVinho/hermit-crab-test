@@ -20,7 +20,19 @@ namespace HermitCrab.UI
         private void Awake()
         {
             if (BackButton != null)
-                BackButton.onClick.AddListener(() => OnBackClicked?.Invoke());
+                BackButton.onClick.AddListener(HandleBackButtonClicked);
+        }
+
+        // Called when the Back button is clicked.
+        private void HandleBackButtonClicked()
+        {
+            OnBackClicked?.Invoke();
+        }
+        
+        private void OnDestroy()
+        {
+            if (BackButton != null)
+                BackButton.onClick.RemoveListener(HandleBackButtonClicked);
         }
 
         // New method to show the end screen with the appropriate panel.

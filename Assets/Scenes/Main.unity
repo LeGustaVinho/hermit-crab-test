@@ -379,11 +379,11 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 55818840058691699, guid: ce52e4e143f84481cb9933aaec1ba6c0, type: 3}
       propertyPath: m_AnchoredPosition.x
-      value: -105.6
+      value: -105.6001
       objectReference: {fileID: 0}
     - target: {fileID: 55818840058691699, guid: ce52e4e143f84481cb9933aaec1ba6c0, type: 3}
       propertyPath: m_AnchoredPosition.y
-      value: 82.6
+      value: 82.599976
       objectReference: {fileID: 0}
     - target: {fileID: 55818840058691699, guid: ce52e4e143f84481cb9933aaec1ba6c0, type: 3}
       propertyPath: m_LocalEulerAnglesHint.x
@@ -684,9 +684,8 @@ MonoBehaviour:
   InitializeOnStart: 0
   target: {fileID: 0}
   virtualCamera: {fileID: 1360293738}
-  screenXOffset: 0.4
-  screenYOffset: 0.5
   confiner: {fileID: 0}
+  cameraSettings: {fileID: 11400000, guid: f85845682400cdb498562d3e2751575d, type: 2}
 --- !u!114 &221533233
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -1964,11 +1963,11 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 55818840058691699, guid: ce52e4e143f84481cb9933aaec1ba6c0, type: 3}
       propertyPath: m_AnchoredPosition.x
-      value: -68.4
+      value: -68.3999
       objectReference: {fileID: 0}
     - target: {fileID: 55818840058691699, guid: ce52e4e143f84481cb9933aaec1ba6c0, type: 3}
       propertyPath: m_AnchoredPosition.y
-      value: -64.2
+      value: -64.19995
       objectReference: {fileID: 0}
     - target: {fileID: 55818840058691699, guid: ce52e4e143f84481cb9933aaec1ba6c0, type: 3}
       propertyPath: m_LocalEulerAnglesHint.x

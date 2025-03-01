@@ -16,6 +16,10 @@ PrefabInstance:
       propertyPath: attackRange
       value: 30
       objectReference: {fileID: 0}
+    - target: {fileID: -3896030069922986106, guid: 7512302c34ade0b4faf3ef75bc432ab4, type: 3}
+      propertyPath: enemyConfig
+      value: 
+      objectReference: {fileID: 11400000, guid: 38e754bb4be627845b865d3a06a2107f, type: 2}
     - target: {fileID: 6618287276494595579, guid: 7512302c34ade0b4faf3ef75bc432ab4, type: 3}
       propertyPath: m_LocalPosition.x
       value: 0

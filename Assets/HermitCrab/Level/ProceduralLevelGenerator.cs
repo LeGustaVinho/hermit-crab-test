@@ -1,7 +1,9 @@
-﻿using System.Collections;
+﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using Sirenix.OdinInspector;
 using UnityEngine;
+using Random = UnityEngine.Random;
 
 namespace HermitCrab.Level
 {
@@ -95,6 +97,11 @@ namespace HermitCrab.Level
 
         // Parent container for level elements
         private GameObject levelParent;
+
+        // Public properties to expose generated objects
+        public GameObject ProceduralLevelInstance { get { return levelParent; } }
+        public GameObject DoorLockedInstance { get; private set; }
+        public GameObject DoorOpenInstance { get; private set; }
 
         // Call this method (e.g., from Start or via another script) to generate the level at runtime.
         [Button]
@@ -223,7 +230,9 @@ namespace HermitCrab.Level
             {
                 Vector3 spawnBlock = SnapToGrid(mainPath[5]);
                 Vector3 spawnPos = spawnBlock + new Vector3(0, gridSize + 1.15f, 0);
-                InstantiateAndYield(playerSpawnPrefab, spawnPos);
+                // Instantiate DoorLocked object (used as spawn point)
+                DoorLockedInstance = Instantiate(playerSpawnPrefab, spawnPos, Quaternion.identity, levelParent.transform);
+                DoorLockedInstance.name = "DoorLocked";
             }
 
             // Place Player Victory 5 blocks before the end (index = count - 6)
@@ -233,7 +242,9 @@ namespace HermitCrab.Level
                 if (victoryIndex < 0) victoryIndex = 0;
                 Vector3 victoryBlock = SnapToGrid(mainPath[victoryIndex]);
                 Vector3 victoryPos = victoryBlock + new Vector3(0, gridSize + 1.15f, 0);
-                InstantiateAndYield(playerVictoryPrefab, victoryPos);
+                // Instantiate DoorOpen object (to be used as door trigger)
+                DoorOpenInstance = Instantiate(playerVictoryPrefab, victoryPos, Quaternion.identity, levelParent.transform);
+                DoorOpenInstance.name = "DoorOpen";
             }
 
             // Create vertical walls at the first and last blocks from Y=20 down to Y=-15
@@ -360,6 +371,11 @@ namespace HermitCrab.Level
             position.x = Mathf.Round(position.x / gridSize) * gridSize;
             position.y = Mathf.Round(position.y / gridSize) * gridSize;
             return position;
+        }
+
+        private void OnDestroy()
+        {
+            StopAllCoroutines();
         }
     }
 }

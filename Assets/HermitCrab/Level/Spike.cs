@@ -69,5 +69,17 @@ namespace HermitCrab.Level
             return characterCollider != null && spikeCollider != null &&
                    characterCollider.bounds.Intersects(spikeCollider.bounds);
         }
+
+        private void OnDestroy()
+        {
+            foreach (var routine in _activeCoroutines.Values)
+            {
+                if (routine != null)
+                {
+                    StopCoroutine(routine);
+                }
+            }
+            _activeCoroutines.Clear();
+        }
     }
 }

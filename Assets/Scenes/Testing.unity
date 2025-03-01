@@ -233,7 +233,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 7093870294736280591, guid: 493613117c810d3479fb24a4079a12c2, type: 3}
       propertyPath: m_IsActive
-      value: 0
+      value: 1
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
@@ -586,9 +586,8 @@ MonoBehaviour:
   InitializeOnStart: 1
   target: {fileID: 914844696}
   virtualCamera: {fileID: 1360293738}
-  screenXOffset: 0.4
-  screenYOffset: 0.5
   confiner: {fileID: 0}
+  cameraSettings: {fileID: 11400000, guid: f85845682400cdb498562d3e2751575d, type: 2}
 --- !u!4 &270710571 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: 3478676099266155750, guid: 1b9d657568352e74d91e76d4ec50c59e, type: 3}
@@ -2195,7 +2194,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 6309974844604141488, guid: 01b3d834adcf1924aa084e65ddf94d58, type: 3}
       propertyPath: m_IsActive
-      value: 1
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 7184615835998052072, guid: 01b3d834adcf1924aa084e65ddf94d58, type: 3}
       propertyPath: m_LocalPosition.x

@@ -96,6 +96,118 @@ namespace HermitCrab.Character
         private Color originalColor;
         private bool isPoisoned = false;
 
+        // New field to track the FlashRed coroutine.
+        private Coroutine flashRedCoroutine;
+
+        #endregion
+
+        #region Event Handlers
+
+        /// <summary>
+        /// Handles the health changed event from logic.
+        /// </summary>
+        private void HandleHealthChanged(int health)
+        {
+            OnHealthChanged?.Invoke(health);
+        }
+
+        /// <summary>
+        /// Handles the energy changed event from logic.
+        /// </summary>
+        private void HandleEnergyChanged(int energy)
+        {
+            OnEnergyChanged?.Invoke(energy);
+        }
+
+        /// <summary>
+        /// Handles the jump event from logic.
+        /// </summary>
+        private void OnJumpHandler()
+        {
+            if (!isDead)
+            {
+                animator.SetTrigger(characterData.jumpTriggerHash);
+            }
+        }
+
+        /// <summary>
+        /// Handles the double jump event from logic.
+        /// </summary>
+        private void OnDoubleJumpHandler()
+        {
+            if (!isDead)
+            {
+                animator.SetTrigger(characterData.doubleJumpTriggerHash);
+            }
+        }
+
+        /// <summary>
+        /// Handles the shoot event from logic.
+        /// </summary>
+        private void OnShootHandler()
+        {
+            if (!isDead)
+            {
+                animator.SetTrigger(characterData.shootTriggerHash);
+            }
+        }
+
+        /// <summary>
+        /// Handles the jump shoot event from logic.
+        /// </summary>
+        private void OnJumpShootHandler()
+        {
+            if (!isDead)
+            {
+                animator.SetTrigger(characterData.jumpShootTriggerHash);
+            }
+        }
+
+        /// <summary>
+        /// Handles the run shoot event from logic.
+        /// </summary>
+        private void OnRunShootHandler()
+        {
+            if (!isDead)
+            {
+                animator.SetTrigger(characterData.runShootTriggerHash);
+            }
+        }
+
+        /// <summary>
+        /// Handles the punch event from logic.
+        /// </summary>
+        private void OnPunchHandler()
+        {
+            if (!isDead)
+            {
+                animator.SetTrigger(characterData.punchTriggerHash);
+            }
+        }
+
+        /// <summary>
+        /// Handles the jump punch event from logic.
+        /// </summary>
+        private void OnJumpPunchHandler()
+        {
+            if (!isDead)
+            {
+                animator.SetTrigger(characterData.jumpPunchTriggerHash);
+            }
+        }
+
+        /// <summary>
+        /// Handles the death event from logic.
+        /// </summary>
+        private void OnDeathHandler()
+        {
+            if (!isDead)
+            {
+                animator.SetTrigger(characterData.dieTriggerHash);
+                Die();
+            }
+        }
+
         #endregion
 
         #region Unity Methods
@@ -117,8 +229,8 @@ namespace HermitCrab.Character
                 originalColor = spriteRenderer.color;
             }
             // Re-fire logic events for health and energy changes.
-            logic.OnHealthChanged += (health) => { OnHealthChanged?.Invoke(health); };
-            logic.OnEnergyChanged += (energy) => { OnEnergyChanged?.Invoke(energy); };
+            logic.OnHealthChanged += HandleHealthChanged;
+            logic.OnEnergyChanged += HandleEnergyChanged;
         }
 
         /// <summary>
@@ -127,70 +239,21 @@ namespace HermitCrab.Character
         private void SubscribeToEvents()
         {
             // Subscribe to jump event.
-            logic.OnJump += () =>
-            {
-                if (!isDead)
-                {
-                    animator.SetTrigger("JumpTrigger");
-                }
-            };
+            logic.OnJump += OnJumpHandler;
             // Subscribe to double jump event.
-            logic.OnDoubleJump += () =>
-            {
-                if (!isDead)
-                {
-                    animator.SetTrigger("DoubleJumpTrigger");
-                }
-            };
+            logic.OnDoubleJump += OnDoubleJumpHandler;
             // Subscribe to shoot event.
-            logic.OnShoot += () =>
-            {
-                if (!isDead)
-                {
-                    animator.SetTrigger("ShootTrigger");
-                }
-            };
+            logic.OnShoot += OnShootHandler;
             // Subscribe to jump shoot event.
-            logic.OnJumpShoot += () =>
-            {
-                if (!isDead)
-                {
-                    animator.SetTrigger("JumpShootTrigger");
-                }
-            };
+            logic.OnJumpShoot += OnJumpShootHandler;
             // Subscribe to run shoot event.
-            logic.OnRunShoot += () =>
-            {
-                if (!isDead)
-                {
-                    animator.SetTrigger("RunShootTrigger");
-                }
-            };
+            logic.OnRunShoot += OnRunShootHandler;
             // Subscribe to punch event.
-            logic.OnPunch += () =>
-            {
-                if (!isDead)
-                {
-                    animator.SetTrigger("PunchTrigger");
-                }
-            };
+            logic.OnPunch += OnPunchHandler;
             // Subscribe to jump punch event.
-            logic.OnJumpPunch += () =>
-            {
-                if (!isDead)
-                {
-                    animator.SetTrigger("JumpPunchTrigger");
-                }
-            };
+            logic.OnJumpPunch += OnJumpPunchHandler;
             // Subscribe to death event.
-            logic.OnDeath += () =>
-            {
-                if (!isDead)
-                {
-                    animator.SetTrigger("DieTrigger");
-                    Die();
-                }
-            };
+            logic.OnDeath += OnDeathHandler;
             // Subscribe to projectile creation event.
             logic.OnProjectileCreated += CreateProjectile;
         }
@@ -250,6 +313,28 @@ namespace HermitCrab.Character
             }
         }
 
+        /// <summary>
+        /// Unsubscribes from all events when this object is destroyed.
+        /// </summary>
+        private void OnDestroy()
+        {
+            StopAllCoroutines();
+            if (logic != null)
+            {
+                logic.OnJump -= OnJumpHandler;
+                logic.OnDoubleJump -= OnDoubleJumpHandler;
+                logic.OnShoot -= OnShootHandler;
+                logic.OnJumpShoot -= OnJumpShootHandler;
+                logic.OnRunShoot -= OnRunShootHandler;
+                logic.OnPunch -= OnPunchHandler;
+                logic.OnJumpPunch -= OnJumpPunchHandler;
+                logic.OnDeath -= OnDeathHandler;
+                logic.OnProjectileCreated -= CreateProjectile;
+                logic.OnHealthChanged -= HandleHealthChanged;
+                logic.OnEnergyChanged -= HandleEnergyChanged;
+            }
+        }
+
         #endregion
 
         #region Public Methods
@@ -282,7 +367,6 @@ namespace HermitCrab.Character
         {
             isExternallyAffected = active;
         }
-        
         /// <summary>
         ///     Updates the movement input.
         ///     Only processes new input if it has changed, then calls the CharacterLogic Move method
@@ -315,20 +399,20 @@ namespace HermitCrab.Character
             {
                 if (run)
                 {
-                    animator.SetBool("isRunning", true);
-                    animator.SetBool("isWalking", false);
+                    animator.SetBool(characterData.isRunningParamHash, true);
+                    animator.SetBool(characterData.isWalkingParamHash, false);
                 }
                 else
                 {
-                    animator.SetBool("isRunning", false);
-                    animator.SetBool("isWalking", true);
+                    animator.SetBool(characterData.isRunningParamHash, false);
+                    animator.SetBool(characterData.isWalkingParamHash, true);
                 }
             }
             else
             {
-                animator.SetBool("isRunning", false);
-                animator.SetBool("isWalking", false);
-                animator.SetBool("isIdle", true);
+                animator.SetBool(characterData.isRunningParamHash, false);
+                animator.SetBool(characterData.isWalkingParamHash, false);
+                animator.SetBool(characterData.isIdleParamHash, true);
             }
         }
 
@@ -396,7 +480,8 @@ namespace HermitCrab.Character
                 return;
             }
 
-            if (Time.time - lastPunchTime < actionCooldown)
+            // Verificação de cooldown:
+            if (Time.time - lastPunchTime < characterData.actionCooldown)
             {
                 return;
             }
@@ -406,7 +491,7 @@ namespace HermitCrab.Character
 
             // Determine the origin of the punch based on character position and facing direction.
             Vector2 punchOrigin = (Vector2)transform.position +
-                                  (logic.FacingRight ? Vector2.right : Vector2.left) * (punchRange * 0.5f);
+                                  (logic.FacingRight ? Vector2.right : Vector2.left) * (punchRange * characterData.punchOffsetMultiplier);
 
             // Check for colliders within the punch range (without filtering by layer).
             Collider2D[] hitColliders = Physics2D.OverlapCircleAll(punchOrigin, punchRange);
@@ -468,7 +553,7 @@ namespace HermitCrab.Character
                 if (isGrounded && (logic.IsJumping || isExternallyAffected))
                 {
                     Land();
-                    animator.SetTrigger("LandTrigger");
+                    animator.SetTrigger(characterData.landTriggerHash);
                 }
             }
         }
@@ -494,14 +579,7 @@ namespace HermitCrab.Character
                 return;
             }
 
-            if (Mathf.Abs(horizontalInput) > 0.1f)
-            {
-                animator.SetBool("isIdle", false);
-            }
-            else
-            {
-                animator.SetBool("isIdle", true);
-            }
+            animator.SetBool(characterData.isIdleParamHash, !(Mathf.Abs(horizontalInput) > characterData.horizontalInputThreshold));
         }
 
         /// <summary>
@@ -535,7 +613,12 @@ namespace HermitCrab.Character
             // Flash red if the damage is not poison.
             if (damageType != DamageType.Poison)
             {
-                StartCoroutine(FlashRed());
+                if (flashRedCoroutine != null)
+                {
+                    StopCoroutine(flashRedCoroutine);
+                    flashRedCoroutine = null;
+                }
+                flashRedCoroutine = StartCoroutine(FlashRed());
             }
         }
 
@@ -550,6 +633,7 @@ namespace HermitCrab.Character
         /// </summary>
         public void Die()
         {
+            StopAllCoroutines();
             isDead = true;
             if (rb != null)
             {
@@ -599,6 +683,7 @@ namespace HermitCrab.Character
                 yield return new WaitForSeconds(0.2f);
                 spriteRenderer.color = isPoisoned ? Color.green : originalColor;
             }
+            flashRedCoroutine = null;
         }
 
         #endregion

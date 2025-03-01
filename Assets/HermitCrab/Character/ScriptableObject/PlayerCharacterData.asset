@@ -10,7 +10,7 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 663695d518d7e0546bfabaeb63b95dc5, type: 3}
-  m_Name: EnemyData
+  m_Name: PlayerCharacterData
   m_EditorClassIdentifier: 
   maxHealth: 100
   maxEnergy: 100
@@ -18,10 +18,10 @@ MonoBehaviour:
   shootEnergyCost: 10
   projectileDamage: 20
   punchDamage: 15
-  projectilePrefab: {fileID: 8281238581253393530, guid: bbb3d09fd4631eb49821c1c6e756de9f, type: 3}
+  projectilePrefab: {fileID: 8281238581253393530, guid: f1cd17586ade71f44a67145f3b2f6744, type: 3}
   projectileSpeed: 25
   projectileMaxDistance: 30
-  walkSpeed: 5
-  runSpeed: 10
-  jumpForce: 10
+  walkSpeed: 20
+  runSpeed: 40
+  jumpForce: 13
   fallMultiplier: 5
