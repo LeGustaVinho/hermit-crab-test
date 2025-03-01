@@ -434,12 +434,7 @@ namespace HermitCrab.Character
         {
             if (characterData.projectilePrefab && projectileSpawnPoint)
             {
-                GameObject projInstance = Instantiate(characterData.projectilePrefab, projectileSpawnPoint.position, Quaternion.identity);
-                ProjectileController controller = projInstance.GetComponent<ProjectileController>();
-                if (controller != null)
-                {
-                    controller.Initialize(projInfo);
-                }
+                HermitCrab.Factory.GameObjectFactory.CreateProjectile(characterData.projectilePrefab, projectileSpawnPoint.position, projInfo);
             }
         }
 
