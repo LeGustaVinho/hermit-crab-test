@@ -79,7 +79,6 @@ namespace HermitCrab.Character
         private bool lastIsRunning;
 
         // State flags.
-        private bool wasIdle = false;
         private bool isDead; // Indicates if the character is dead.
         private bool isExternallyAffected = false;
 

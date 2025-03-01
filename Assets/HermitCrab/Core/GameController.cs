@@ -41,11 +41,14 @@ namespace HermitCrab.Core
             gameLogic.OnLivesChanged += (lives) => { OnLivesChanged?.Invoke(lives); };
             gameLogic.OnGameOver += () => { OnGameOver?.Invoke(); };
             gameLogic.OnWin += () => { OnGameWin?.Invoke(); };
-
-            // Start the first level.
-            StartCoroutine(StartLevelRoutine());
+            
         }
 
+        public void StarLevel()
+        {
+            StartCoroutine(StartLevelRoutine());
+        }
+        
         /// <summary>
         /// Generates a new level, instantiates the player and binds scene references.
         /// </summary>

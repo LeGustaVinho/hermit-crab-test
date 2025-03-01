@@ -24,8 +24,11 @@ namespace HermitCrab.Level
             CharacterController character = other.GetComponent<CharacterController>();
             if (character != null && _activeCoroutines.ContainsKey(character))
             {
-                StopCoroutine(_activeCoroutines[character]);
-                _activeCoroutines.Remove(character);
+                if (_activeCoroutines[character] != null)
+                {
+                    StopCoroutine(_activeCoroutines[character]);
+                    _activeCoroutines.Remove(character);
+                }
             }
         }
 
