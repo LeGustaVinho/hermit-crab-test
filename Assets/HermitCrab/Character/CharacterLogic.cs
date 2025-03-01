@@ -209,5 +209,16 @@ namespace HermitCrab.Character
             Energy = Mathf.Min(Energy + amount, data.maxEnergy);
             OnEnergyChanged?.Invoke(Energy);
         }
+        
+        /// <summary>
+        /// Resets health and energy to maximum and notifies listeners.
+        /// </summary>
+        public void ResetStats()
+        {
+            Health = data.maxHealth;
+            Energy = data.maxEnergy;
+            OnHealthChanged?.Invoke(Health);
+            OnEnergyChanged?.Invoke(Energy);
+        }
     }
 }

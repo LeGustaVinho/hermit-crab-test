@@ -35,11 +35,22 @@ namespace HermitCrab.UI
                 LevelScreenView.OnShootClicked += HandleShootClicked;
                 LevelScreenView.OnPunchClicked += HandlePunchClicked;
             }
-
             if (PopupView != null)
                 PopupView.OnCloseClicked += HandlePopupCloseClicked;
             if (EndScreenView != null)
                 EndScreenView.OnBackClicked += HandleEndScreenBackClicked;
+
+            // Subscribe to GameController events.
+            if (GameController != null)
+            {
+                GameController.OnGameOver += HandleGameOver;
+                GameController.OnGameWin += HandleWin;
+                GameController.OnLivesChanged += HandleLivesChanged;
+                GameController.OnLevelChanged += HandleLevelChanged;
+                GameController.OnPointsChanged += HandlePointsChanged;
+                GameController.OnPlayerHealthChanged += HandleHealthChanged;
+                GameController.OnPlayerEnergyChanged += HandleEnergyChanged;
+            }
         }
 
         private void OnDisable()
@@ -56,37 +67,48 @@ namespace HermitCrab.UI
                 LevelScreenView.OnShootClicked -= HandleShootClicked;
                 LevelScreenView.OnPunchClicked -= HandlePunchClicked;
             }
-
             if (PopupView != null)
                 PopupView.OnCloseClicked -= HandlePopupCloseClicked;
             if (EndScreenView != null)
                 EndScreenView.OnBackClicked -= HandleEndScreenBackClicked;
+
+            // Unsubscribe from GameController events.
+            if (GameController != null)
+            {
+                GameController.OnGameOver -= HandleGameOver;
+                GameController.OnGameWin -= HandleWin;
+                GameController.OnLivesChanged -= HandleLivesChanged;
+                GameController.OnLevelChanged -= HandleLevelChanged;
+                GameController.OnPointsChanged -= HandlePointsChanged;
+                GameController.OnPlayerHealthChanged -= HandleHealthChanged;
+                GameController.OnPlayerEnergyChanged -= HandleEnergyChanged;
+            }
         }
 
         // Show only the Main Screen view.
         public void ShowMainScreen()
         {
             if (MainScreenView != null)
-                MainScreenView.gameObject.SetActive(true);
+                MainScreenView.Show();
             if (LevelScreenView != null)
-                LevelScreenView.gameObject.SetActive(false);
+                LevelScreenView.Hide();
             if (PopupView != null)
-                PopupView.gameObject.SetActive(false);
+                PopupView.Hide();
             if (EndScreenView != null)
-                EndScreenView.gameObject.SetActive(false);
+                EndScreenView.Hide();
         }
 
         // Show only the Level Screen view.
         public void ShowLevelScreen()
         {
             if (MainScreenView != null)
-                MainScreenView.gameObject.SetActive(false);
+                MainScreenView.Hide();
             if (LevelScreenView != null)
-                LevelScreenView.gameObject.SetActive(true);
+                LevelScreenView.Show();
             if (PopupView != null)
-                PopupView.gameObject.SetActive(false);
+                PopupView.Hide();
             if (EndScreenView != null)
-                EndScreenView.gameObject.SetActive(false);
+                EndScreenView.Hide();
         }
 
         // Show the popup view with the provided message.
@@ -95,7 +117,7 @@ namespace HermitCrab.UI
             if (PopupView != null)
             {
                 PopupView.SetMessage(message);
-                PopupView.gameObject.SetActive(true);
+                PopupView.Show();
             }
         }
 
@@ -103,23 +125,20 @@ namespace HermitCrab.UI
         public void HidePopup()
         {
             if (PopupView != null)
-                PopupView.gameObject.SetActive(false);
+                PopupView.Hide();
         }
 
-        // Show the End Screen view (for Victory/Defeat) with the provided message.
-        public void ShowEndScreen(string message)
+        // Show the End Screen view (for Victory/Defeat) with the provided outcome and message.
+        public void ShowEndScreen(bool isVictory)
         {
             if (MainScreenView != null)
-                MainScreenView.gameObject.SetActive(false);
+                MainScreenView.Hide();
             if (LevelScreenView != null)
-                LevelScreenView.gameObject.SetActive(false);
+                LevelScreenView.Hide();
             if (PopupView != null)
-                PopupView.gameObject.SetActive(false);
+                PopupView.Hide();
             if (EndScreenView != null)
-            {
-                EndScreenView.SetMessage(message);
-                EndScreenView.gameObject.SetActive(true);
-            }
+                EndScreenView.Show(isVictory, GameController.FinalScore);
         }
 
         // Event handler for the Main Screen "Start Level" button click.
@@ -129,7 +148,6 @@ namespace HermitCrab.UI
             {
                 GameController.StarLevel();
             }
-
             ShowLevelScreen();
         }
 
@@ -180,6 +198,52 @@ namespace HermitCrab.UI
         {
             if (InputController != null)
                 InputController.OnPunch();
+        }
+
+        // Handler for Game Over event.
+        private void HandleGameOver()
+        {
+            ShowEndScreen(false);
+        }
+
+        // Handler for Win event.
+        private void HandleWin()
+        {
+            ShowEndScreen(true);
+        }
+
+        // Handler for Lives Changed event.
+        private void HandleLivesChanged(int lives)
+        {
+            if (LevelScreenView != null)
+                LevelScreenView.UpdateLives(lives);
+        }
+
+        // Handler for Level Changed event.
+        private void HandleLevelChanged(int level)
+        {
+            // Optionally update level-specific UI elements.
+        }
+
+        // Handler for Points Changed event.
+        private void HandlePointsChanged(int points)
+        {
+            if (LevelScreenView != null)
+                LevelScreenView.UpdateScore(points);
+        }
+
+        // Handler for Health Changed event.
+        private void HandleHealthChanged(int health)
+        {
+            if (LevelScreenView != null)
+                LevelScreenView.UpdateHealth(health);
+        }
+
+        // Handler for Energy Changed event.
+        private void HandleEnergyChanged(int energy)
+        {
+            if (LevelScreenView != null)
+                LevelScreenView.UpdateEnergy(energy);
         }
     }
 }

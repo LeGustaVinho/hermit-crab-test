@@ -23,5 +23,17 @@ namespace HermitCrab.UI
             if (MessageText != null)
                 MessageText.text = message;
         }
+
+        // New method to show the popup.
+        public void Show()
+        {
+            gameObject.SetActive(true);
+        }
+
+        // New method to hide the popup.
+        public void Hide()
+        {
+            gameObject.SetActive(false);
+        }
     }
 }

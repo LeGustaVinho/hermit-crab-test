@@ -11,9 +11,11 @@ namespace HermitCrab.Core
 {
     public class GameController : MonoBehaviour
     {
-        [Header("Game Configuration")] public GameConfig gameConfig;
+        [Header("Game Configuration")] 
+        public GameConfig gameConfig;
 
-        [Header("Scene References")] public InputController inputController;
+        [Header("Scene References")] 
+        public InputController inputController;
         public CameraControllerCinemachine cameraController;
         public ProceduralLevelGeneratorRuntime levelGenerator;
 
@@ -29,20 +31,38 @@ namespace HermitCrab.Core
         public event Action OnPlayerDied;
         public event Action OnGameOver;
         public event Action OnGameWin;
+        public event Action<int> OnPlayerHealthChanged;
+        public event Action<int> OnPlayerEnergyChanged;
+        public event Action<int> OnPointsChanged;
 
         private void Start()
         {
-            // Initialize game logic with settings from the ScriptableObject.
-            gameLogic = new GameLogic(gameConfig.initialLives, gameConfig.levelsToWin);
-            // Subscribe to game logic events and re-fire them through GameController events.
-            gameLogic.OnLevelStart += () => { OnLevelStarted?.Invoke(); };
-            gameLogic.OnLevelEnd += () => { OnLevelEnded?.Invoke(); };
-            gameLogic.OnLevelChanged += (level) => { OnLevelChanged?.Invoke(level); };
-            gameLogic.OnLivesChanged += (lives) => { OnLivesChanged?.Invoke(lives); };
-            gameLogic.OnGameOver += () => { OnGameOver?.Invoke(); };
-            gameLogic.OnWin += () => { OnGameWin?.Invoke(); };
-            
+            // Initialize game logic.
+            ResetGame();
         }
+
+        /// <summary>
+        /// Resets the game by creating a new GameLogic instance and subscribing to its events.
+        /// </summary>
+        public void ResetGame()
+        {
+            gameLogic = new GameLogic(gameConfig.initialLives, gameConfig.levelsToWin);
+            SubscribeGameLogicEvents(gameLogic);
+        }
+
+        private void SubscribeGameLogicEvents(GameLogic logic)
+        {
+            logic.OnLevelStart += () => { OnLevelStarted?.Invoke(); };
+            logic.OnLevelEnd += () => { OnLevelEnded?.Invoke(); };
+            logic.OnLevelChanged += (level) => { OnLevelChanged?.Invoke(level); };
+            logic.OnLivesChanged += (lives) => { OnLivesChanged?.Invoke(lives); };
+            logic.OnGameOver += () => { OnGameOver?.Invoke(); };
+            logic.OnWin += () => { OnGameWin?.Invoke(); };
+            logic.OnPointsChanged += (points) => { OnPointsChanged?.Invoke(points); };
+        }
+
+        // Expose the final score.
+        public int FinalScore => gameLogic != null ? gameLogic.Points : 0;
 
         public void StarLevel()
         {
@@ -89,6 +109,17 @@ namespace HermitCrab.Core
             CharacterController playerController = currentPlayer.GetComponent<CharacterController>();
             if (playerController != null)
             {
+                // Subscribe to player's events BEFORE resetting stats.
+                playerController.OnPlayerDeath += HandlePlayerDeath;
+                playerController.OnHealthChanged += (health) =>
+                {
+                    OnPlayerHealthChanged?.Invoke(health);
+                };
+                playerController.OnEnergyChanged += (energy) =>
+                {
+                    OnPlayerEnergyChanged?.Invoke(energy);
+                };
+
                 inputController.characterController = playerController;
                 cameraController.target = currentPlayer.transform;
                 cameraController.Initialize();
@@ -100,9 +131,6 @@ namespace HermitCrab.Core
                     enemy.player = currentPlayer.transform;
                 }
 
-                // Subscribe to the player's death event.
-                playerController.OnPlayerDeath += HandlePlayerDeath;
-                
                 // Subscribe to the player's item collection event.
                 playerController.OnItemCollected += (itemData) =>
                 {
@@ -121,6 +149,9 @@ namespace HermitCrab.Core
                         };
                     }
                 }
+
+                // Now reset player stats so that health and energy are at maximum.
+                playerController.ResetStats();
             }
             else
             {

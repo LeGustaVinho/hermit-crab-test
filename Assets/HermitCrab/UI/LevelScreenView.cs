@@ -1,7 +1,7 @@
 ﻿using System;
-using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
+using TMPro;
 
 namespace HermitCrab.UI
 {
@@ -74,6 +74,18 @@ namespace HermitCrab.UI
         {
             if (ScoreText != null)
                 ScoreText.text = score.ToString();
+        }
+
+        // New method to show the view.
+        public void Show()
+        {
+            gameObject.SetActive(true);
+        }
+
+        // New method to hide the view.
+        public void Hide()
+        {
+            gameObject.SetActive(false);
         }
     }
 }

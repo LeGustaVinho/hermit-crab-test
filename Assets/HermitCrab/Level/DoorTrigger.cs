@@ -1,8 +1,9 @@
-﻿namespace HermitCrab.Level
-{
-    using System;
-    using UnityEngine;
+﻿using System;
+using UnityEngine;
+using CharacterController = HermitCrab.Character.CharacterController;
 
+namespace HermitCrab.Level
+{
     public class DoorTrigger : MonoBehaviour
     {
         // Instance event for door triggering.

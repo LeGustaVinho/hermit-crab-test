@@ -62,6 +62,10 @@ namespace HermitCrab.Character
         /// </summary>
         public event Action<CollectibleItemData> OnItemCollected;
 
+        // New events to notify health and energy changes.
+        public event Action<int> OnHealthChanged;
+        public event Action<int> OnEnergyChanged;
+
         #endregion
 
         #region Private Fields
@@ -112,6 +116,9 @@ namespace HermitCrab.Character
             {
                 originalColor = spriteRenderer.color;
             }
+            // Re-fire logic events for health and energy changes.
+            logic.OnHealthChanged += (health) => { OnHealthChanged?.Invoke(health); };
+            logic.OnEnergyChanged += (energy) => { OnEnergyChanged?.Invoke(energy); };
         }
 
         /// <summary>
@@ -278,7 +285,7 @@ namespace HermitCrab.Character
         
         /// <summary>
         ///     Updates the movement input.
-        ///     Only processes new input if there is a change, then calls the CharacterLogic Move method
+        ///     Only processes new input if it has changed, then calls the CharacterLogic Move method
         ///     and updates Animator parameters.
         /// </summary>
         /// <param name="direction">Horizontal direction (-1 for left, 1 for right).</param>
@@ -303,7 +310,6 @@ namespace HermitCrab.Character
             isRunning = run;
             // Pass input to the character logic.
             logic.Move(direction, run);
-
             // Update Animator boolean parameters for movement.
             if (Mathf.Abs(direction) > 0.1f)
             {
@@ -421,6 +427,14 @@ namespace HermitCrab.Character
                     target.TakeDamage(DamageType.Physical, characterData.punchDamage, transform.position);
                 }
             }
+        }
+        
+        /// <summary>
+        /// Resets the character's health and energy to maximum.
+        /// </summary>
+        public void ResetStats()
+        {
+            logic.ResetStats();
         }
 
         /// <summary>

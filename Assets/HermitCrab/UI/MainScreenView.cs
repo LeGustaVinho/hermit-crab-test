@@ -26,5 +26,17 @@ namespace HermitCrab.UI
         {
             OnStartLevelClicked?.Invoke();
         }
+
+        // New method to show the view.
+        public void Show()
+        {
+            gameObject.SetActive(true);
+        }
+
+        // New method to hide the view.
+        public void Hide()
+        {
+            gameObject.SetActive(false);
+        }
     }
 }
