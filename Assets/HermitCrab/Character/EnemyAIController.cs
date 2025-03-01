@@ -1,6 +1,8 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using HermitCrab.Core;
 using UnityEngine;
+using Random = UnityEngine.Random;
 
 namespace HermitCrab.Character
 {
@@ -17,6 +19,8 @@ namespace HermitCrab.Character
     /// </summary>
     public class EnemyAIController : MonoBehaviour
     {
+        public bool AutoInitializeOnStart = false;
+        
         [Header("Enemy Settings")] 
         public EnemyConfigData enemyConfig;
         public CharacterController enemyController; // Reference to this enemy's CharacterController
@@ -45,11 +49,16 @@ namespace HermitCrab.Character
         // Cache for the player's CharacterController to avoid repeated GetComponent calls.
         private CharacterController playerController;
 
+        private void Start()
+        {
+            if(AutoInitializeOnStart) Initialize();
+        }
+
         /// <summary>
         /// Initializes the enemy AI, sets up necessary references, and builds the behavior tree.
         /// Also subscribes to the damage event from the CharacterController.
         /// </summary>
-        private void Start()
+        public void Initialize()
         {
             if (enemyController == null)
             {
@@ -298,7 +307,7 @@ namespace HermitCrab.Character
             {
                 // If the player is within detection range and alive, execute the chase branch.
                 if (Vector2.Distance(transform.position, player.position) <= enemyConfig.detectionRange &&
-                    playerController?.IsAlive == true)
+                    playerController.IsAlive)
                 {
                     return ChaseBranch();
                 }

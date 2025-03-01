@@ -14,11 +14,11 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   detectionRange: 10
   attackRange: 3
-  enemyType: 1
+  enemyType: 0
   patrolDistanceMin: 3
   patrolDistanceMax: 6
   patrolWaitMin: 2
   patrolWaitMax: 4
-  groundDetectionDistance: 1
+  groundDetectionDistance: 5
   hurtDistanceThreshold: 0.2
   hurtDuration: 5

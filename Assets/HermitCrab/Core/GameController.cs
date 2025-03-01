@@ -200,6 +200,7 @@ namespace HermitCrab.Core
                 foreach (var enemy in enemyControllers)
                 {
                     enemy.player = currentPlayer.transform;
+                    enemy.Initialize();
                 }
 
                 // Subscribe to enemy death events.

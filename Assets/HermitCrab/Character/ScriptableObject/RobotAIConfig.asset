@@ -12,13 +12,13 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 2a5eadd44b8c41e08d57f602405c40f0, type: 3}
   m_Name: RobotAIConfig
   m_EditorClassIdentifier: 
-  detectionRange: 10
+  detectionRange: 30
   attackRange: 30
   enemyType: 1
   patrolDistanceMin: 3
   patrolDistanceMax: 6
   patrolWaitMin: 2
   patrolWaitMax: 4
-  groundDetectionDistance: 1
+  groundDetectionDistance: 5
   hurtDistanceThreshold: 0.2
   hurtDuration: 5
