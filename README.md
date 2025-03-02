@@ -32,7 +32,12 @@ Must include:
 - Project documentation;
 
 ## Overview
-The project is a 2D game developed in Unity, with a modular architecture that facilitates maintenance and scalability. The code is organized into several namespaces, each responsible for specific aspects of the game:
+
+The project is a 2D game developed in Unity, with a modular architecture that facilitates maintenance and scalability.
+
+All design, code, documentation and testing were completed in 4 days.
+
+The code is organized into several namespaces, each responsible for specific aspects of the game:
 
 - HermitCrab.Camera: Manages the behavior and configuration of the camera using Cinemachine.
 - HermitCrab.Character: Contains the logic of the characters (player and enemies), including movement, animation, attacks, collisions and reactions to damage.

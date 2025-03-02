@@ -25,12 +25,12 @@ namespace HermitCrab.Character
                 characterBehaviour.Jump();
             }
 
-            if (Input.GetKeyDown(KeyCode.Z))
+            if (Input.GetMouseButtonUp(0))
             {
                 characterBehaviour.Shoot();
             }
 
-            if (Input.GetKeyDown(KeyCode.X))
+            if (Input.GetKeyDown(KeyCode.V))
             {
                 characterBehaviour.Punch();
             }
